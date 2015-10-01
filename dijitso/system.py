@@ -38,9 +38,6 @@ def deletefile(filename):
         if e.errno != errno.ENOENT:
             raise
 
-def get_status_output(cmd):
-    # TODO: Execute compiler command with popen? Check what's used from instant. Make it configurable.
-    #status, output = commands.get_status_output(cmd)
-    status = os.system(cmd)
-    output = ""
-    return status, output
+# TODO: Copy here to make configurable through dijitso params.
+#       Just letting it stay in instant for now.
+from instant import get_status_output
