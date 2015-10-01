@@ -38,26 +38,26 @@ dijitso add signature.cpp
 dijitso build signature.cpp
 """
 
-def cmd_config(args):
+def cmd_config(args, params):
     "show configuration"
-    params = validate_params({})
+    params = validate_params(params)
     for category in sorted(params):
         print("%s:" % (category,))
         for name in sorted(params[category]):
             print("    %s: %s" % (name, params[category][name]))
     return 0
 
-def cmd_has(args):
+def cmd_has(args, params):
     "check if file(s) exist in repository"
     print("has", args)
     return 0
 
-def cmd_show(args):
+def cmd_show(args, params):
     "show file(s) in repository"
     print("show", args)
     return 0
 
-def cmd_grep(args):
+def cmd_grep(args, params):
     "grep content of file(s) in repository"
     print("grep", args)
     return 0
@@ -67,12 +67,12 @@ def cmd_add(args=None):
     print("add", args)
     return 0
 
-def cmd_cp(args):
+def cmd_cp(args, params):
     "copy file(s) from repository"
     print("cp", args)
     return 0
 
-def cmd_rm(args):
+def cmd_rm(args, params):
     "remove file(s) from repository"
     print("rm", args)
     return 0

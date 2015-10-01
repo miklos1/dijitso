@@ -22,6 +22,7 @@
 from __future__ import print_function
 import sys
 import argparse
+from dijitso.params import validate_params
 import dijitso.cmd as cmd_namespace
 
 def build_commands(cmd_namespace):
@@ -40,8 +41,15 @@ def build_commands(cmd_namespace):
 def add_top_arguments(parser):
     "Add arguments to top level parser."
     parser.add_argument("--verbose", "-v", default=False, help="set logging level")
-    parser.add_argument("--root", "-r", default=None, help="use non-default repository root path")
+    parser.add_argument("--root-dir", "-r", default=None, help="set non-default cache repository path")
     #parser.add_argument("--dry-run", "-n", default=False, help="only show what would be done, don't touch filesystem")
+
+def extract_params_from_args(args):
+    p = {}
+    p["cache_params"] = {}
+    if args.root_dir is not None:
+        p["cache_params"]["root_dir"] = args.root_dir
+    return p
 
 def add_common_arguments(parser):
     "Add arguments to each subparser."
@@ -77,10 +85,14 @@ def main(argv):
     args = argparse.Namespace()
     top_parser.parse_args(argv[1:], namespace=args)
 
+    # Extract generic params
+    params = extract_params_from_args(args)
+    params = validate_params(params)
+
     # Run the chosen command (argparse doesn't allow getting to this point with an invalid cmd_name)
     assert args.cmd_name in commands
     cmd = commands[args.cmd_name]
-    return cmd(args)
+    return cmd(args, params)
 
 if __name__ == "__main__":
    sys.exit(main(sys.argv))

@@ -22,7 +22,7 @@ from __future__ import print_function
 import os, uuid
 from glob import glob
 import numpy
-from dijitso.system import makedirs
+from dijitso.cache import make_lib_dir
 
 def bcast_uuid(comm):
     "Create a unique id shared across all processes in comm."
@@ -232,6 +232,6 @@ def receive_library(comm, signature, cache_params):
 
     # Store to cache dir
     lib_filename = create_lib_filename(signature, cache_params)
-    makedirs(cache_params["lib_dir"])
+    make_lib_dir(cache_params)
     lib_data.tofile(lib_filename)
     # TODO: Set permissions?

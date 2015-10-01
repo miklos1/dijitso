@@ -50,10 +50,11 @@ def read_config_file():
 
 def default_cache_params():
     p = dict(
-        #tmp_dir=".dijitso/tmp",
-        #err_dir=".dijitso/err",
-        src_dir=".dijitso/src",
-        lib_dir=".dijitso/lib",
+        root_dir="~/.cache/dijitso",
+        #tmp_dir="tmp",
+        #err_dir="err",
+        src_dir="src",
+        lib_dir="lib",
         src_prefix="dijitso_",
         src_postfix=".cpp",
         src_storage="keep",
@@ -140,7 +141,13 @@ def validate_params(params):
         check_params_keys(p, params)
         p = merge_params(p, params)
 
-    # Validate compiler flags storage
+    # Expand paths including "~" to include full user home directory path
+    for category in p:
+        for name, value in p[category].items():
+            if name.endswith("_dir") and "~" in value:
+                p[category][name] = os.path.expanduser(value)
+
+    # Validate compiler flags format as tuple of strings
     bp = p["build_params"]
     for k in ("cxxflags", "cxxflags_debug", "cxxflags_opt", "include_dirs", "libs"):
         bp[k] = as_str_tuple(bp[k])

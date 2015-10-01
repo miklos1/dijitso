@@ -22,16 +22,23 @@ from __future__ import print_function
 import os
 import ctypes
 import gzip
+from dijitso.system import makedirs
 
 def create_src_filename(signature, cache_params):
     "Create source code filename based on signature and params."
     basename = cache_params["src_prefix"] + signature + cache_params["src_postfix"]
-    return os.path.join(cache_params["src_dir"], basename)
+    return os.path.join(cache_params["root_dir"], cache_params["src_dir"], basename)
 
 def create_lib_filename(signature, cache_params):
     "Create library filename based on signature and params."
     basename = cache_params["lib_prefix"] + signature + cache_params["lib_postfix"]
-    return os.path.join(cache_params["lib_dir"], basename)
+    return os.path.join(cache_params["root_dir"], cache_params["lib_dir"], basename)
+
+def make_src_dir(cache_params):
+    makedirs(os.path.join(cache_params["root_dir"], cache_params["src_dir"]))
+
+def make_lib_dir(cache_params):
+    makedirs(os.path.join(cache_params["root_dir"], cache_params["lib_dir"]))
 
 def load_library(signature, cache_params):
     """Load existing dynamic library from disk.
@@ -69,7 +76,7 @@ def lookup_lib(signature, cache_params):
 
 def store_src(signature, src, cache_params):
     "Store source code in file within dijitso directories."
-    makedirs(cache_params["src_dir"])
+    make_src_dir(cache_params)
     src_filename = create_src_filename(signature, cache_params)
 
     if not os.path.exists(src_filename):
