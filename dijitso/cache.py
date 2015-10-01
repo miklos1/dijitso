@@ -61,19 +61,45 @@ def load_library(signature, cache_params):
         _lib_cache[signature] = lib
     return lib
 
+# A cache is always something to be careful about.
+# This one stores references to loaded jit-compiled libraries,
+# which will stay in memory unless manually unloaded anyway
+# and should not cause any trouble.
 _lib_cache = {}
-def lookup_lib(signature, cache_params):
+def lookup_lib(lib_signature, cache_params):
     """Lookup library in memory cache then in disk cache.
 
     Returns library module if found, otherwise None.
     """
     # Look for already loaded library in memory cache
-    lib = _lib_cache.get(signature)
+    lib = _lib_cache.get(lib_signature)
     if lib is None:
         # Cache miss in memory, try looking on disk
-        lib = load_library(signature, cache_params)
+        lib = load_library(lib_signature, cache_params)
     # Return library or None
     return lib
+
+# A cache is always something to be careful about.
+# This one only stores filenames to generated code for
+# jit-compiled libraries, and should not cause any trouble.
+_src_cache = {}
+def lookup_src(src_signature, cache_params):
+    """Lookup source code in disk cache.
+
+    Returns filename if found, otherwise None.
+    """
+    # TODO: If source code is compressed on disk this will fail. If so, uncompress!
+    # Look for already found source filename in memory cache
+    src_filename = _src_cache.get(src_signature)
+    if src_filename is None:
+        # Cache miss in memory, try looking on disk
+        src_filename = create_src_filename(src_signature, cache_params)
+        if os.path.exists(src_filename):
+            _src_cache[src_signature] = src_filename
+        else:
+            src_filename = None
+    # Return filename or None
+    return src_filename
 
 def store_src(signature, src, cache_params):
     "Store source code in file within dijitso directories."

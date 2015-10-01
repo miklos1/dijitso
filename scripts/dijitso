@@ -23,7 +23,7 @@ from __future__ import print_function
 import sys
 import argparse
 from dijitso.params import validate_params
-import dijitso.cmd as cmd_namespace
+import dijitso.cmdline as cmd_namespace
 
 def build_commands(cmd_namespace):
     """Collects functions called cmd_<basename> from given namespace.

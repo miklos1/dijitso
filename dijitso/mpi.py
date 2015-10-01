@@ -181,20 +181,25 @@ def create_comms_and_role(comm, comm_dir, buildon):
             error("Invalid parameter buildon=%s" % (buildon,))
     return copy_comm, wait_comm, role
 
-def send_library(comm, lib_filename, params):
-    "Send compiled library as binary blob over MPI."
-    import numpy
+def read_library_binary(lib_filename):
+    "Read compiled shared library as binary blob into a numpy byte array."
+    return numpy.fromfile(lib_filename, dtype=numpy.uint8)
 
+def write_library_binary(lib_data, signature, cache_params):
+    "Store compiled shared library from binary blob in numpy byte array to cache."
+    make_lib_dir(cache_params)
+    lib_filename = create_lib_filename(signature, cache_params)
+    lib_data.tofile(lib_filename)
+    # TODO: Set permissions?
+
+def send_binary(comm, lib_data):
+    "Send compiled library as binary blob over MPI."
     # TODO: Test this in parallel locally.
     # TODO: Test this in parallel on clusters.
     # http://mpi4py.scipy.org/docs/usrman/tutorial.html
-
     # Check that we are the root
     root = 0
     assert comm.rank == root
-
-    # Read library from cache as binary file
-    lib_data = numpy.fromfile(lib_filename, dtype=numpy.uint8)
 
     # Send file size
     lib_size = numpy.ndarray((1,), dtype=numpy.uint32)
@@ -206,10 +211,8 @@ def send_library(comm, lib_filename, params):
     log("rank %d: send data with root=%d." % (comm.rank, root))
     comm.Bcast(lib_data, root=root)
 
-def receive_library(comm, signature, cache_params):
+def receive_binary(comm):
     "Store shared library received as a binary blob to cache."
-    import numpy
-
     # Check that we are not the root
     root = 0
     assert comm.rank != root
@@ -224,8 +227,28 @@ def receive_library(comm, signature, cache_params):
     log("rank %d: receive data with root=%d." % (comm.rank, root))
     comm.Bcast(lib_data, root=root)
 
-    # Store to cache dir
-    lib_filename = create_lib_filename(signature, cache_params)
-    make_lib_dir(cache_params)
-    lib_data.tofile(lib_filename)
-    # TODO: Set permissions?
+    return lib_data
+
+def foo():
+    # TODO: Should call these once (for each comm at least) globally in dolfin, not on each jit call
+
+    def get_comm_dir(cache_params):
+        return os.path.join(cache_params["root_dir"], cache_params["comm_dir"])
+
+    comm_dir = get_comm_dir()
+    copy_comm, wait_comm, role = create_comms_and_role(comm, comm_dir, buildon)
+
+    if wait_comm is not None:
+        def wait():
+            wait_comm.Barrier()
+    else:
+        wait = None
+
+    if copy_comm is not None and copy_comm.size > 1:
+        def send(lib_data):
+            send_binary(copy_comm, lib_data)
+    else:
+        send = None
+
+    def receive():
+        return receive_binary(copy_comm)

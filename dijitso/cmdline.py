@@ -47,32 +47,37 @@ def cmd_config(args, params):
             print("    %s: %s" % (name, params[category][name]))
     return 0
 
-def cmd_has(args, params):
+def _cmd_has(args, params):
     "check if file(s) exist in repository"
     print("has", args)
     return 0
 
-def cmd_show(args, params):
+def _cmd_show(args, params):
     "show file(s) in repository"
     print("show", args)
     return 0
 
-def cmd_grep(args, params):
+def _cmd_grep(args, params):
     "grep content of file(s) in repository"
     print("grep", args)
     return 0
 
-def cmd_add(args=None):
+def _cmd_add(args=None):
     "add file(s) to repository"
     print("add", args)
     return 0
 
-def cmd_cp(args, params):
+def _cmd_cp(args, params):
     "copy file(s) from repository"
     print("cp", args)
     return 0
 
-def cmd_rm(args, params):
+def _cmd_rm(args, params):
     "remove file(s) from repository"
     print("rm", args)
+    return 0
+
+def _cmd_clean(args, params):
+    "remove all files from repository"
+    print("clean", args)
     return 0
