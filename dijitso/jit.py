@@ -69,7 +69,8 @@ def jit(signature, generator, jitable, params, role="builder", copy_comm=None, w
         # Since we didn't find the library in cache, we must build it.
 
         # TODO: Should call these once (for each comm at least) globally in dolfin, not on each jit call
-        #copy_comm, wait_comm, role = create_comms_and_role(comm, cache_params["lib_dir"], buildon)
+        #comm_dir = os.path.join(cache_params["root_dir"], cache_params["comm_dir"])
+        #copy_comm, wait_comm, role = create_comms_and_role(comm, comm_dir, buildon)
 
         if role == "builder":
             # 1) Generate source code

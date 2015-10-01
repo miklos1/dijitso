@@ -22,7 +22,8 @@ from __future__ import print_function
 import os
 import ctypes
 import gzip
-from dijitso.system import makedirs
+import shutil
+from dijitso.system import makedirs, deletefile
 
 def create_src_filename(signature, cache_params):
     "Create source code filename based on signature and params."

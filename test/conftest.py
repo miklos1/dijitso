@@ -101,8 +101,7 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
 
     # Setup params
     cache_params = dict(
-        src_dir=os.path.join(dijitso_root_dir, "src"),
-        lib_dir=os.path.join(dijitso_root_dir, "lib"),
+        root_dir=dijitso_root_dir,
         src_storage="compress",
         )
     build_params = dict(

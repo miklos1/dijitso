@@ -51,10 +51,11 @@ def read_config_file():
 def default_cache_params():
     p = dict(
         root_dir="~/.cache/dijitso",
-        #tmp_dir="tmp",
-        #err_dir="err",
+        inc_dir="include",
         src_dir="src",
         lib_dir="lib",
+        comm_dir="comm",
+        #err_dir="err",
         src_prefix="dijitso_",
         src_postfix=".cpp",
         src_storage="keep",
@@ -121,7 +122,9 @@ def merge_params(default, params):
     p = {}
     for category in default:
         p[category] = default[category].copy()
-        p[category].update(params.get(category, ()))
+        v = params.get(category)
+        if v:
+            p[category].update(v)
     return p
 
 def validate_params(params):

@@ -95,12 +95,12 @@ def create_subcomm(comm, ranks):
     group.Free()
     return subcomm
 
-def create_node_comm(comm, lib_dir):
+def create_node_comm(comm, comm_dir):
     """Create comms for communicating within a node."""
-    # Find ranks that share this physical lib_dir (physical dir, not same path string)
-    node_ranks = discover_path_access_ranks(comm, lib_dir)
+    # Find ranks that share this physical comm_dir (physical dir, not same path string)
+    node_ranks = discover_path_access_ranks(comm, comm_dir)
 
-    # Partition comm into one communicator for each physical lib_dir
+    # Partition comm into one communicator for each physical comm_dir
     assert len(node_ranks) >= 1
     node_root = min(node_ranks)
     node_comm = comm.Split(node_root, node_ranks.index(comm.rank))
@@ -112,12 +112,9 @@ def create_node_roots_comm(comm, node_root):
     roots_comm = create_subcomm(comm, unique_global_node_roots)
     return roots_comm
 
-def create_comms_and_role_root(comm, lib_dir):
+def create_comms_and_role_root(comm, node_comm, node_root):
     """Approach: global root builds and sends binary to node roots, everyone waits on their node group."""
-    node_comm, node_root = create_node_comm(comm, lib_dir)
-    roots_comm = create_node_roots_comm(comm, node_root)
-
-    copy_comm = roots_comm
+    copy_comm = create_node_roots_comm(comm, node_root)
     wait_comm = node_comm
     if comm.rank == 0:
         role = "builder"
@@ -129,10 +126,8 @@ def create_comms_and_role_root(comm, lib_dir):
         role = "waiter"
     return copy_comm, wait_comm, role
 
-def create_comms_and_role_node(comm, lib_dir):
+def create_comms_and_role_node(comm, node_comm, node_root):
     """Approach: each node root builds, everyone waits on their node group."""
-    node_comm, node_root = create_node_comm(comm, lib_dir)
-
     copy_comm = None
     wait_comm = node_comm
     if node_comm.rank == 0:
@@ -143,7 +138,7 @@ def create_comms_and_role_node(comm, lib_dir):
         role = "waiter"
     return copy_comm, wait_comm, role
 
-def create_comms_and_role_process(comm, lib_dir):
+def create_comms_and_role_process(comm, node_comm, node_root):
     """Approach: each process builds its own module, no communication.
 
     To ensure no race conditions in this case independently of cache dir setup,
@@ -151,12 +146,9 @@ def create_comms_and_role_process(comm, lib_dir):
     This should always be 1, or we provide the user with an informative message.
     TODO: Append program uid and process rank to basedir instead?
     """
-    node_comm, node_root = create_node_comm(comm, lib_dir)
-
     if node_comm.size > 1:
         error("Asking for per-process building but processes share cache dir."
               " Please configure dijitso dirs to be distinct per process.")
-
     copy_comm = None
     wait_comm = None
     assert node_comm.rank == 0
@@ -164,7 +156,7 @@ def create_comms_and_role_process(comm, lib_dir):
     role = "builder"
     return copy_comm, wait_comm, role
 
-def create_comms_and_role(comm, lib_dir, buildon):
+def create_comms_and_role(comm, comm_dir, buildon):
     """Determine which role each process should take, and create
     the right copy_comm and wait_comm for the build strategy.
 
@@ -177,14 +169,16 @@ def create_comms_and_role(comm, lib_dir, buildon):
     # If we have no comm, always return the builder role
     if comm is None:
         copy_comm, wait_comm, role = None, None, "builder"
-    elif buildon == "root":
-        copy_comm, wait_comm, role = create_comms_and_role_root(comm, lib_dir)
-    elif buildon == "node":
-        copy_comm, wait_comm, role = create_comms_and_role_node(comm, lib_dir)
-    elif buildon == "process":
-        copy_comm, wait_comm, role = create_comms_and_role_process(comm, lib_dir)
     else:
-        error("Invalid parameter buildon=%s" % (buildon,))
+        node_comm, node_root = create_node_comm(comm, comm_dir)
+        if buildon == "root":
+            copy_comm, wait_comm, role = create_comms_and_role_root(comm, node_comm, node_root)
+        elif buildon == "node":
+            copy_comm, wait_comm, role = create_comms_and_role_node(comm, node_comm, node_root)
+        elif buildon == "process":
+            copy_comm, wait_comm, role = create_comms_and_role_process(comm, node_comm, node_root)
+        else:
+            error("Invalid parameter buildon=%s" % (buildon,))
     return copy_comm, wait_comm, role
 
 def send_library(comm, lib_filename, params):
