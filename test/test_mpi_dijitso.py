@@ -66,10 +66,10 @@ def test_mpi_jit_strategies(comm, jit_integer, buildon):
     for repeat in range(2):
         for jitable in (234, 567): # Note different values than serial test
             # Each integer produces different code
-            lib, factory = jit_integer(jitable, comm=comm, buildon=buildon, dijitso_root_dir=dijitso_root_dir)
+            lib, factory, gettr = jit_integer(jitable, comm=comm, buildon=buildon, dijitso_root_dir=dijitso_root_dir)
 
             # Inspect values for testing
-            assert jitable + magic_value == getattr(lib, "get_test_value_%d" % jitable)(factory())
+            assert jitable + magic_value == gettr(factory())
 
             # Memory cache test
             if repeat == 0:
