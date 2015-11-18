@@ -42,10 +42,10 @@ def test_core_jit_framework(jit_integer):
     for repeat in range(2):
         for jitable in (123, 456):
             # Each integer produces different code
-            lib, factory = jit_integer(jitable)
+            lib, factory, gettr = jit_integer(jitable)
 
             # Inspect values for testing
-            assert jitable + magic_value == getattr(lib, "get_test_value_%d" % jitable)(factory())
+            assert jitable + magic_value == gettr(factory())
 
             # Memory cache test
             if repeat == 0:

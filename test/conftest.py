@@ -4,6 +4,7 @@ from __future__ import print_function
 import pytest
 import hashlib, os
 import dijitso
+import ctypes
 
 
 @pytest.fixture()
@@ -132,12 +133,15 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
     # Jit it!
     lib = dijitso.jit(signature, mygenerator, jitable, params,
                       role=role, copy_comm=copy_comm, wait_comm=wait_comm)
+    gettr = getattr(lib, "get_test_value_%d" % jitable)
+    gettr.argtypes = [ctypes.c_void_p]
+    gettr.restype = ctypes.c_int
 
     # Extract the factory function we want from library
     factory = dijitso.extract_factory_function(lib, "create_" + signature)
 
     # Return both library and factory
-    return lib, factory
+    return lib, factory, gettr
 
 @pytest.fixture()
 def jit_integer():
