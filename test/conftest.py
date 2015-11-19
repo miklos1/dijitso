@@ -76,7 +76,7 @@ DLL_EXPORT int get_test_value_%(testvalue)d(void * p)
 }
 """
 
-def generate(signature, jitable, generator_params):
+def mygenerate(signature, jitable, generator_params):
     """."""
     code_parts = dict(
         generator_params=str(generator_params),
@@ -132,22 +132,24 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
     copy_comm, wait_comm, role = create_comms_and_role(comm, sync_dir, buildon)
 
     # Somewhat messy definitions of send/receive/wait...
-    if copy_comm is None:
-        send = None
-        receive = None
-    else:
-        def send(lib_data):
-            assert role == "builder"
-            send_binary(copy_comm, lib_data)
-        if role == "builder":
-            receive = None
-        else:
-            def receive():
-                assert role == "receiver"
-                return receive_binary(copy_comm)
-    if wait_comm is None:
-        wait = None
-    else:
+    send = None
+    receive = None
+    wait = None
+    if role == "builder":
+        generate = mygenerate
+        if copy_comm is not None:
+            def send(lib_data):
+                assert role == "builder"
+                send_binary(copy_comm, lib_data)
+    elif role == "receiver":
+        generate = None
+        assert copy_comm is not None
+        def receive():
+            return receive_binary(copy_comm)
+    elif role == "waiter":
+        generate = None
+
+    if wait_comm is not None:
         def wait():
             wait_comm.barrier()
 
