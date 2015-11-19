@@ -76,7 +76,7 @@ DLL_EXPORT int get_test_value_%(testvalue)d(void * p)
 }
 """
 
-def mygenerator(signature, jitable, generator_params):
+def generate(signature, jitable, generator_params):
     """."""
     code_parts = dict(
         generator_params=str(generator_params),
@@ -125,23 +125,37 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
     signature = h.hexdigest()[:10]
 
     # Autodetect subcomms and role based on buildin option and physical disk access of processes
-    from dijitso import create_comms_and_role, makedirs
+    from dijitso.mpi import create_comms_and_role, send_binary, receive_binary
+    from dijitso.system import makedirs
     sync_dir = os.path.join(dijitso_root_dir, "sync")
     makedirs(sync_dir)
     copy_comm, wait_comm, role = create_comms_and_role(comm, sync_dir, buildon)
 
+    def send(lib_data):
+        assert role == "builder"
+        send_binary(copy_comm, lib_data)
+    def receive():
+        assert role == "receiver"
+        return receive_binary(copy_comm)
+    def wait():
+        wait_comm.barrier()
+
+    if role == "builder":
+        receive = None
+
     # Jit it!
-    lib = dijitso.jit(signature, mygenerator, jitable, params,
-                      role=role, copy_comm=copy_comm, wait_comm=wait_comm)
-    gettr = getattr(lib, "get_test_value_%d" % jitable)
-    gettr.argtypes = [ctypes.c_void_p]
-    gettr.restype = ctypes.c_int
+    lib = dijitso.jit(signature, jitable, params,
+                      generate, send, receive, wait)
 
     # Extract the factory function we want from library
     factory = dijitso.extract_factory_function(lib, "create_" + signature)
+    # ... and the test specific getter function
+    get_test_value = getattr(lib, "get_test_value_%d" % jitable)
+    get_test_value.argtypes = [ctypes.c_void_p]
+    get_test_value.restype = ctypes.c_int
 
     # Return both library and factory
-    return lib, factory, gettr
+    return lib, factory, get_test_value
 
 @pytest.fixture()
 def jit_integer():

@@ -68,7 +68,7 @@ def compile_library(src_filename, lib_filename, build_params):
 
     # Failure to compile is usually a showstopper
     if status:
-        error("Compile command failed with code %d:\n    %s" % (status, cmd))
+        error("Compile command\n  %s\nfailed with code %d:\n%s" % (cmd, status, output))
 
     return status
 

@@ -41,6 +41,17 @@ def make_src_dir(cache_params):
 def make_lib_dir(cache_params):
     makedirs(os.path.join(cache_params["root_dir"], cache_params["lib_dir"]))
 
+def read_library_binary(lib_filename):
+    "Read compiled shared library as binary blob into a numpy byte array."
+    return numpy.fromfile(lib_filename, dtype=numpy.uint8)
+
+def write_library_binary(lib_data, signature, cache_params):
+    "Store compiled shared library from binary blob in numpy byte array to cache."
+    make_lib_dir(cache_params)
+    lib_filename = create_lib_filename(signature, cache_params)
+    lib_data.tofile(lib_filename)
+    # TODO: Set permissions?
+
 def load_library(signature, cache_params):
     """Load existing dynamic library from disk.
 

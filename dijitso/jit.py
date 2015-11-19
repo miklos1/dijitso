@@ -24,8 +24,19 @@ import numpy
 from dijitso.system import makedirs, deletefile
 from dijitso.log import log, error
 from dijitso.params import validate_params
-from dijitso.cache import lookup_lib, load_library, lookup_src, store_src, compress_source_code
+from dijitso.cache import lookup_lib, load_library
+from dijitso.cache import write_library_binary, read_library_binary
+from dijitso.cache import lookup_src, store_src, compress_source_code
 from dijitso.build import build_shared_library
+
+import hashlib
+
+def extend_signature(sig, params):
+    "Extend a signature hash with a parameter hash."
+    h = hashlib.sha1()
+    for k in sorted(params):
+        h.update(repr((k, params[k])))
+    return sig[:8] + "_" + h.hexdigest()[:8]
 
 def extract_factory_function(lib, name):
     """Extract function from loaded library.
@@ -98,8 +109,11 @@ def jit(signature, jitable, params, generate=None, send=None, receive=None, wait
     params = validate_params(params)
 
     # Combine jitable signature and parameters
-    src_signature = extend_signature(signature, params["generator_params"])
-    lib_signature = extend_signature(src_signature, params["build_params"])
+    #src_signature = extend_signature(signature, params["generator_params"])
+    #lib_signature = extend_signature(src_signature, params["build_params"])
+    # FIXME: Improve signature handling
+    src_signature = signature
+    lib_signature = signature
 
     # Look for library in memory or disk cache
     cache_params = params["cache_params"]

@@ -181,17 +181,6 @@ def create_comms_and_role(comm, comm_dir, buildon):
             error("Invalid parameter buildon=%s" % (buildon,))
     return copy_comm, wait_comm, role
 
-def read_library_binary(lib_filename):
-    "Read compiled shared library as binary blob into a numpy byte array."
-    return numpy.fromfile(lib_filename, dtype=numpy.uint8)
-
-def write_library_binary(lib_data, signature, cache_params):
-    "Store compiled shared library from binary blob in numpy byte array to cache."
-    make_lib_dir(cache_params)
-    lib_filename = create_lib_filename(signature, cache_params)
-    lib_data.tofile(lib_filename)
-    # TODO: Set permissions?
-
 def send_binary(comm, lib_data):
     "Send compiled library as binary blob over MPI."
     # TODO: Test this in parallel locally.
