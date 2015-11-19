@@ -20,9 +20,10 @@
 
 from __future__ import print_function
 
-from dijitso.system import makedirs, get_status_output
+import os
+from dijitso.system import get_status_output
 from dijitso.log import log, error
-from dijitso.cache import create_lib_filename
+from dijitso.cache import create_lib_filename, make_lib_dir
 
 def make_compile_command(src_filename, lib_filename, build_params):
     """Piece together the compile command from build params.
@@ -77,7 +78,7 @@ def build_shared_library(signature, src_filename, params):
     # TODO: Currently compiling directly into dijitso lib dir. Use temp dir and move on success.
 
     # Prepare target directory and filename for library
-    makedirs(params["cache_params"]["lib_dir"])
+    make_lib_dir(params["cache_params"])
     lib_filename = create_lib_filename(signature, params["cache_params"])
 
     # Compile generated source code to dynamic library

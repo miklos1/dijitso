@@ -23,6 +23,7 @@ import os, uuid
 from glob import glob
 import numpy
 from dijitso.cache import make_lib_dir
+from dijitso.log import log, error
 
 def bcast_uuid(comm):
     "Create a unique id shared across all processes in comm."

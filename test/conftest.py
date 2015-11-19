@@ -131,17 +131,25 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
     makedirs(sync_dir)
     copy_comm, wait_comm, role = create_comms_and_role(comm, sync_dir, buildon)
 
-    def send(lib_data):
-        assert role == "builder"
-        send_binary(copy_comm, lib_data)
-    def receive():
-        assert role == "receiver"
-        return receive_binary(copy_comm)
-    def wait():
-        wait_comm.barrier()
-
-    if role == "builder":
+    # Somewhat messy definitions of send/receive/wait...
+    if copy_comm is None:
+        send = None
         receive = None
+    else:
+        def send(lib_data):
+            assert role == "builder"
+            send_binary(copy_comm, lib_data)
+        if role == "builder":
+            receive = None
+        else:
+            def receive():
+                assert role == "receiver"
+                return receive_binary(copy_comm)
+    if wait_comm is None:
+        wait = None
+    else:
+        def wait():
+            wait_comm.barrier()
 
     # Jit it!
     lib = dijitso.jit(signature, jitable, params,

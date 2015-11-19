@@ -43,6 +43,7 @@ def make_lib_dir(cache_params):
 
 def read_library_binary(lib_filename):
     "Read compiled shared library as binary blob into a numpy byte array."
+    import numpy
     return numpy.fromfile(lib_filename, dtype=numpy.uint8)
 
 def write_library_binary(lib_data, signature, cache_params):

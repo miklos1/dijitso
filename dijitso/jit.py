@@ -21,7 +21,7 @@ import os, errno, ctypes, shutil, uuid
 from glob import glob
 import numpy
 
-from dijitso.system import makedirs, deletefile
+from dijitso.system import deletefile
 from dijitso.log import log, error
 from dijitso.params import validate_params
 from dijitso.cache import lookup_lib, load_library

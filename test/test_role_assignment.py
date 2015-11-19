@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import pytest
-from dijitso import makedirs, create_comms_and_role
+from dijitso.system import makedirs
+from dijitso.mpi import create_comms_and_role
 
 @pytest.fixture()
 def lib_dir0(comm):
