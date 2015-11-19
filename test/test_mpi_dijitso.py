@@ -44,18 +44,15 @@ def test_mpi_jit_strategies(comm, jit_integer, buildon):
     if buildon == "process":
         # One dir per process
         dijitso_root_dir = ".test_dijitso_%d" % (comm.rank,)
-        deletedir = True
     elif buildon == "node":
         # Less dirs than processes (gives some waiting for size > 2)
         dijitso_root_dir = ".test_dijitso_%d" % (comm.rank % 2,)
-        deletedir = comm.rank < 2 # avoids race condition on create/delete dir
     elif buildon == "root":
         # Less dirs than processes (gives a combination of copying (size>1) and waiting (size>2))
         dijitso_root_dir = ".test_dijitso_%d" % (comm.rank % 2,)
-        deletedir = comm.rank < 2 # avoids race condition on create/delete dir
 
-    if deletedir:
-        shutil.rmtree(dijitso_root_dir, ignore_errors=True)
+    shutil.rmtree(dijitso_root_dir, ignore_errors=True)
+    comm.barrier()
 
     # This magic value is defined in testincludes/testinclude.h,
     # so this is used to confirm that includes work correctly.
@@ -81,8 +78,7 @@ def test_mpi_jit_strategies(comm, jit_integer, buildon):
 
     # If all went well we clean up, if assertions triggered
     # above we allow this cleanup to not happen
-    if deletedir:
-        shutil.rmtree(dijitso_root_dir, ignore_errors=True)
-
+    shutil.rmtree(dijitso_root_dir, ignore_errors=True)
+    comm.barrier()
 
 # TODO: Cover various failure situations with tests
