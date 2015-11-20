@@ -25,8 +25,15 @@ import os
 
 def discover_config_filename():
     basename = ".dijitso.conf"
-    search_paths = [os.curdir, os.path.expanduser("~"), "/etc/dijitso", os.environ.get("DIJITSO_CONF")]
+    search_paths = [
+        os.curdir,
+        os.environ.get("DIJITSO_CONF"),
+        os.path.expanduser("~"),
+        "/etc/dijitso",
+        ]
     for path in search_paths:
+        if path is None:
+            continue
         names = glob(os.path.join(path, basename))
         if names:
             assert len(names) == 1
