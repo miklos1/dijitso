@@ -35,7 +35,7 @@ def extend_signature(sig, params):
     "Extend a signature hash with a parameter hash."
     h = hashlib.sha1()
     for k in sorted(params):
-        h.update(repr((k, params[k])))
+        h.update(repr((k, params[k])).encode('utf-8'))
     return sig[:8] + "_" + h.hexdigest()[:8]
 
 def extract_factory_function(lib, name):

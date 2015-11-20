@@ -119,9 +119,9 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
 
     # Compute a signature
     h = hashlib.sha1()
-    h.update(repr(jitable))
-    h.update(repr(build_params))
-    h.update(repr(generator_params))
+    h.update(repr(jitable).encode('utf-8'))
+    h.update(repr(build_params).encode('utf-8'))
+    h.update(repr(generator_params).encode('utf-8'))
     signature = h.hexdigest()[:10]
 
     # Autodetect subcomms and role based on buildin option and physical disk access of processes
