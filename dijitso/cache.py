@@ -24,6 +24,7 @@ import ctypes
 import gzip
 import shutil
 from dijitso.system import makedirs, deletefile
+from dijitso.log import log, error
 
 def create_src_filename(signature, cache_params):
     "Create source code filename based on signature and params."
