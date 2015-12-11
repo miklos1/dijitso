@@ -5,6 +5,7 @@ dijitso
 Authors:
 
     - Martin Sandve Alnæs (martinal@simula.no)
+    - Johannes Ring (johannr@simula.no)
 
 Motivation
 ----------
