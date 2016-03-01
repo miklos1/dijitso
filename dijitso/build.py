@@ -33,6 +33,9 @@ def make_compile_command(src_filename, lib_filename, build_params):
     # Get compiler name
     args = [build_params["cxx"]]
 
+    # Set output name
+    args.append("-o" + lib_filename)
+
     # Build options (defaults assume gcc compatibility)
     args.extend(build_params["cxxflags"])
     if build_params["debug"]:
@@ -41,14 +44,19 @@ def make_compile_command(src_filename, lib_filename, build_params):
         args.extend(build_params["cxxflags_opt"])
 
     # Add include dirs
-    args.extend("-I"+inc for inc in build_params["include_dirs"])
+    args.extend("-I"+path for path in build_params["include_dirs"])
 
-    # Add libraries TODO: Is this necessary with shared libraries?
-    args.extend("-L"+inc for inc in build_params["libs"])
+    # Add library dirs so linker will find libraries
+    args.extend("-L"+path for path in build_params["lib_dirs"])
 
-    # Add filenames
-    args.append("-o" + lib_filename)
+    # Add library dirs so runtime loader will find libraries
+    args.extend("-Wl,-rpath="+path for path in build_params["lib_dirs"])
+
+    # Add source filename
     args.append(src_filename)
+
+    # Add libraries to search for
+    args.extend("-l"+lib for lib in build_params["libs"])
 
     return args
 
@@ -60,7 +68,8 @@ def compile_library(src_filename, lib_filename, build_params):
     to produce shared library in lib_filename.
     """
     # Build final command string
-    cmd = " ".join(make_compile_command(src_filename, lib_filename, build_params))
+    cmd = make_compile_command(src_filename, lib_filename, build_params)
+    cmds = " ".join(cmd)
 
     # Execute command
     # TODO: Capture compiler output and log it to .dijitso/err/
@@ -69,7 +78,7 @@ def compile_library(src_filename, lib_filename, build_params):
 
     # Failure to compile is usually a showstopper
     if status:
-        error("Compile command\n  %s\nfailed with code %d:\n%s" % (cmd, status, output))
+        error("Compile command\n  %s\nfailed with code %d:\n%s" % (cmds, status, output))
 
     return status
 

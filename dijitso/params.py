@@ -78,6 +78,7 @@ def default_build_params():
         cxxflags_debug=("-g", "-O0"),
         cxxflags_opt=("-O3",), # TODO: Improve optimization flags: vectorization, safe parts of fastmath flags, ...
         include_dirs=(),
+        lib_dirs=(),
         libs=(),
         debug=False,
         )
@@ -159,7 +160,7 @@ def validate_params(params):
 
     # Validate compiler flags format as tuple of strings
     bp = p["build_params"]
-    for k in ("cxxflags", "cxxflags_debug", "cxxflags_opt", "include_dirs", "libs"):
+    for k in ("cxxflags", "cxxflags_debug", "cxxflags_opt", "include_dirs", "lib_dirs", "libs"):
         bp[k] = as_str_tuple(bp[k])
 
     return p
