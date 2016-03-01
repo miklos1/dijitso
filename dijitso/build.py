@@ -54,7 +54,7 @@ def make_compile_command(src_filename, lib_filename, build_params):
         rpath_dirs = build_params["lib_dirs"]
     else:
         rpath_dirs = build_params["rpath_dirs"]
-    args.extend("-Wl,-rpath="+path for path in rpath_dirs)
+    args.extend("-Wl,-rpath,"+path for path in rpath_dirs)
 
     # Add source filename
     args.append(src_filename)
