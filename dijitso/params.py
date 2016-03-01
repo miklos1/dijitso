@@ -74,11 +74,12 @@ def default_cache_params():
 def default_build_params():
     p = dict(
         cxx="g++",
-        cxxflags=("-shared", "-fPIC", "-fvisibility=hidden"),
+        cxxflags=("-shared", "-fPIC", "-fvisibility=hidden", "-std=c++11"),
         cxxflags_debug=("-g", "-O0"),
         cxxflags_opt=("-O3",), # TODO: Improve optimization flags: vectorization, safe parts of fastmath flags, ...
         include_dirs=(),
         lib_dirs=(),
+        rpath_dirs="use_lib_dirs",
         libs=(),
         debug=False,
         )

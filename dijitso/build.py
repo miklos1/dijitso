@@ -50,7 +50,11 @@ def make_compile_command(src_filename, lib_filename, build_params):
     args.extend("-L"+path for path in build_params["lib_dirs"])
 
     # Add library dirs so runtime loader will find libraries
-    args.extend("-Wl,-rpath="+path for path in build_params["lib_dirs"])
+    if build_params["rpath_dirs"] == "use_lib_dirs":
+        rpath_dirs = build_params["lib_dirs"]
+    else:
+        rpath_dirs = build_params["rpath_dirs"]
+    args.extend("-Wl,-rpath="+path for path in rpath_dirs)
 
     # Add source filename
     args.append(src_filename)
