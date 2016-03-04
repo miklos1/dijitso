@@ -50,8 +50,8 @@ def jit_signature(name, params):
 
     # Extend provided name of jitable with hash of relevant parameters
     signature_params = {
-        "generator_params": params["generator_params"],
-        "build_params": params["build_params"]
+        "generator": params["generator"],
+        "build": params["build"]
         }
 
     signature = "%s_%s" % (name, hash_params(signature_params))
@@ -61,8 +61,8 @@ def jit_signature(name, params):
 def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None):
     """Just-in-time compile and import of a shared library with a cache mechanism.
 
-    A signature is computed from the name, params["generator_params"],
-    and params["build_params"]. The name should be a unique identifier
+    A signature is computed from the name, params["generator"],
+    and params["build"]. The name should be a unique identifier
     for the jitable, preferrably produced by a good hash function.
 
     The signature is used to identity if the library has already been
@@ -73,7 +73,7 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
     If no library has been cached, the passed 'generate' function is
     called to generate the source code:
 
-        header, source = generate(jitable, name, signature, params["generator_params"])
+        header, source = generate(jitable, name, signature, params["generator"])
 
     It is expected to translate the 'jitable' object into
     C or C++(default) source code which will subsequently be
@@ -120,7 +120,7 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
     """
     # 0) Look for library in memory or disk cache
     signature = jit_signature(name, params)
-    cache_params = params["cache_params"]
+    cache_params = params["cache"]
     lib = lookup_lib(signature, cache_params)
 
     if lib is None:
@@ -132,7 +132,7 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
 
         elif generate:
             # 1) Generate source code
-            header, source = generate(jitable, name, signature, params["generator_params"])
+            header, source = generate(jitable, name, signature, params["generator"])
 
             # 2) Store header and source code in dijitso include and src dirs
             ensure_dirs(cache_params)

@@ -25,7 +25,7 @@ import ctypes
 import gzip
 import shutil
 from dijitso.system import makedirs, deletefile
-from dijitso.log import log, error
+from dijitso.log import log, warning, error
 
 
 def create_inc_filename(signature, cache_params):

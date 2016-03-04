@@ -51,11 +51,7 @@ def make_compile_command(src_filename, lib_filename, build_params):
     args.extend("-L"+path for path in build_params["lib_dirs"])
 
     # Add library dirs so runtime loader will find libraries
-    if build_params["rpath_dirs"] == "use_lib_dirs":
-        rpath_dirs = build_params["lib_dirs"]
-    else:
-        rpath_dirs = build_params["rpath_dirs"]
-    args.extend("-Wl,-rpath,"+path for path in rpath_dirs)
+    args.extend("-Wl,-rpath,"+path for path in build_params["rpath_dirs"])
 
     # Add source filename
     args.append(src_filename)
@@ -94,10 +90,10 @@ def build_shared_library(signature, src_filename, params):
     # TODO: Currently compiling directly into dijitso lib dir. Use temp dir and move on success.
 
     # Prepare target directory and filename for library
-    make_lib_dir(params["cache_params"])
-    lib_filename = create_lib_filename(signature, params["cache_params"])
+    make_lib_dir(params["cache"])
+    lib_filename = create_lib_filename(signature, params["cache"])
 
     # Compile generated source code to dynamic library
-    compile_library(src_filename, lib_filename, params["build_params"])
+    compile_library(src_filename, lib_filename, params["build"])
 
     return lib_filename

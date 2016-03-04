@@ -24,5 +24,9 @@ def log(msg): # TODO: Replace with proper logging
     print(msg)
 
 
+def warning(msg): # TODO: Replace with proper logging
+    print(msg)
+
+
 def error(msg):
     raise RuntimeError(msg)

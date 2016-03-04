@@ -53,6 +53,7 @@ def read_config_file():
     global _config_file_contents
     if _config_file_contents is None:
         filename = discover_config_filename()
+        log("Using config file '%s'." % (filename,))
         _config_file_contents = {}
         if filename is not None:
             parser = configparser.SafeConfigParser()
@@ -102,7 +103,7 @@ def default_build_params():
         cxxflags_opt=default_cxx_release_flags(),
         include_dirs=(),
         lib_dirs=(),
-        rpath_dirs="use_lib_dirs",
+        rpath_dirs=(),
         libs=(),
         debug=False,
         )
@@ -115,9 +116,9 @@ def default_generator_params():
 
 def default_params():
     p = dict(
-        cache_params=default_cache_params(),
-        build_params=default_build_params(),
-        generator_params=default_generator_params(),
+        cache=default_cache_params(),
+        build=default_build_params(),
+        generator=default_generator_params(),
         )
     return p
 
@@ -128,6 +129,17 @@ def session_default_params():
     if _session_defaults is None:
         _session_defaults = validate_params()
     return copy.deepcopy(_session_defaults)
+
+
+def as_bool(value):
+    if isinstance(value, bool):
+        return value
+    elif value in ("True", "true", "1"):
+        return True
+    elif value in ("False", "false", "0"):
+        return False
+    else:
+        error("Invalid boolean value %s" % (value,))
 
 
 def as_str_tuple(p):
@@ -160,9 +172,10 @@ def merge_params(default, params):
     "Merge two-level param dicts."
     p = {}
     for category in default:
-        p[category] = default[category].copy()
+        d = default[category].copy()
+        p[category] = d
         v = params.get(category)
-        if v:
+        if v is not None:
             p[category].update(v)
     return p
 
@@ -171,7 +184,8 @@ def validate_params(params):
     """Validate parameters to dijitso and fill in with defaults where missing."""
 
     # Start with defaults
-    p = default_params()
+    p0 = default_params()
+    p = p0
 
     # Override with config file if any
     c = read_config_file()
@@ -184,15 +198,20 @@ def validate_params(params):
         check_params_keys(p, params)
         p = merge_params(p, params)
 
-    # Expand paths including "~" to include full user home directory path
+    # Convert parameter types
     for category in p:
         for name, value in p[category].items():
-            if name.endswith("_dir") and "~" in value:
-                p[category][name] = os.path.expanduser(value)
-
-    # Validate compiler flags format as tuple of strings
-    bp = p["build_params"]
-    for k in ("cxxflags", "cxxflags_debug", "cxxflags_opt", "include_dirs", "lib_dirs", "libs"):
-        bp[k] = as_str_tuple(bp[k])
+            v0 = p0[category][name]
+            if isinstance(v0, string_types):
+                # Expand paths including "~" to include full user home directory path
+                if name.endswith("_dir") and "~" in value:
+                    value = os.path.expanduser(value)
+            elif isinstance(v0, bool):
+                value = as_bool(value)
+            elif isinstance(v0, (int, float)):
+                value = type(v0)(value)
+            elif isinstance(v0, tuple):
+                value = as_str_tuple(value)
+            p[category][name] = value
 
     return p

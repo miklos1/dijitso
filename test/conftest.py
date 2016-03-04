@@ -112,9 +112,9 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
         )
     generator_params = None
     params = dict(
-        cache_params=cache_params,
-        build_params=build_params,
-        generator_params=generator_params,
+        cache=cache_params,
+        build=build_params,
+        generator=generator_params,
         )
     params = dijitso.validate_params(params)
 
