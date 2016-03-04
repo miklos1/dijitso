@@ -76,7 +76,7 @@ DLL_EXPORT int get_test_value_%(testvalue)d(void * p)
 }
 """
 
-def mygenerate(signature, module_signature, jitable, generator_params):
+def mygenerate(jitable, name, signature, generator_params):
     """."""
     code_parts = dict(
         generator_params=str(generator_params),
@@ -94,8 +94,8 @@ def mygenerate(signature, module_signature, jitable, generator_params):
         _code_template_testhook % code_parts,
         ]
     header = "// Dummy header"
-    code = '\n'.join(parts)
-    return header, code
+    source = '\n'.join(parts)
+    return header, source
 
 
 def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"):
@@ -118,12 +118,9 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
         )
     params = dijitso.validate_params(params)
 
-    # Compute a signature
-    h = hashlib.sha1()
-    h.update(repr(jitable).encode('utf-8'))
-    h.update(repr(build_params).encode('utf-8'))
-    h.update(repr(generator_params).encode('utf-8'))
-    signature = h.hexdigest()[:10]
+    # Compute a name
+    from dijitso.signatures import hashit
+    name = "jit_integer_" + hashit(jitable)
 
     # Autodetect subcomms and role based on buildin option and physical disk access of processes
     from dijitso.mpi import create_comms_and_role, send_binary, receive_binary
@@ -155,8 +152,8 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
             wait_comm.barrier()
 
     # Jit it!
-    lib = dijitso.jit(signature, jitable, params,
-                      generate, send, receive, wait)
+    lib, signature = dijitso.jit(jitable, name, params,
+                                 generate, send, receive, wait)
 
     # Extract the factory function we want from library
     factory = dijitso.extract_factory_function(lib, "create_" + signature)

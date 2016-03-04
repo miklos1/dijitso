@@ -27,7 +27,7 @@ from dijitso.cache import store_src, store_inc, compress_source_code
 from dijitso.cache import lookup_lib, load_library
 from dijitso.cache import write_library_binary, read_library_binary
 from dijitso.build import build_shared_library
-from dijitso.signatures import extend_signature
+from dijitso.signatures import hash_params
 
 
 def extract_factory_function(lib, name):
@@ -42,19 +42,38 @@ def extract_factory_function(lib, name):
     return function
 
 
-def jit(signature, jitable, params, generate=None, send=None, receive=None, wait=None):
-    """Driver for just in time compilation and import of a shared library with a cache mechanism.
+def jit_signature(name, params):
+    """Compute the signature that jit will use for given name and params."""
 
-    The signature is used to identity if the library
-    has already been compiled and cached. A two-level
-    memory and disk cache ensures good performance
-    for repeated lookups within a single program as
-    well as persistence across program runs.
+    # Validation and completion with defaults for missing parameters
+    params = validate_params(params)
 
-    If no library has been cached, the passed 'generate'
-    function is called with the arguments:
+    # Extend provided name of jitable with hash of relevant parameters
+    signature_params = {
+        "generator_params": params["generator_params"],
+        "build_params": params["build_params"]
+        }
 
-        src = generate(signature, jitable, build_params)
+    signature = "%s_%s" % (name, hash_params(signature_params))
+    return signature
+
+
+def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None):
+    """Just-in-time compile and import of a shared library with a cache mechanism.
+
+    A signature is computed from the name, params["generator_params"],
+    and params["build_params"]. The name should be a unique identifier
+    for the jitable, preferrably produced by a good hash function.
+
+    The signature is used to identity if the library has already been
+    compiled and cached. A two-level memory and disk cache ensures good
+    performance for repeated lookups within a single program as well as
+    persistence across program runs.
+
+    If no library has been cached, the passed 'generate' function is
+    called to generate the source code:
+
+        header, source = generate(jitable, name, signature, params["generator_params"])
 
     It is expected to translate the 'jitable' object into
     C or C++(default) source code which will subsequently be
@@ -99,18 +118,10 @@ def jit(signature, jitable, params, generate=None, send=None, receive=None, wait
     It is highly recommended to avoid have multiple builder processes
     sharing a physical cache directory.
     """
-    # Validation and completion with defaults for missing parameters
-    params = validate_params(params)
-
-    # Extend provided signature of jitable with given parameters
-    module_signature = extend_signature(signature, {
-        "generator_params": params["generator_params"],
-        "build_params": params["build_params"]
-        })
-
     # 0) Look for library in memory or disk cache
+    signature = jit_signature(name, params)
     cache_params = params["cache_params"]
-    lib = lookup_lib(module_signature, cache_params)
+    lib = lookup_lib(signature, cache_params)
 
     if lib is None:
         # Since we didn't find the library in cache, we must build it.
@@ -121,16 +132,16 @@ def jit(signature, jitable, params, generate=None, send=None, receive=None, wait
 
         elif generate:
             # 1) Generate source code
-            header, source = generate(signature, module_signature, jitable, params["generator_params"])
+            header, source = generate(jitable, name, signature, params["generator_params"])
 
             # 2) Store header and source code in dijitso include and src dirs
             ensure_dirs(cache_params)
-            src_filename = store_src(module_signature, source, cache_params)
+            src_filename = store_src(signature, source, cache_params)
             if header:
-                store_inc(module_signature, header, cache_params)
+                store_inc(signature, header, cache_params)
 
             # 3) Compile shared library and store in dijitso lib dir
-            lib_filename = build_shared_library(module_signature, src_filename, params)
+            lib_filename = build_shared_library(signature, src_filename, params)
 
             # Locally compress or delete source code based on params
             # (only need to keep for debugging or other manual inspection)
@@ -144,7 +155,7 @@ def jit(signature, jitable, params, generate=None, send=None, receive=None, wait
         elif receive:
             # 4b) Get library as binary blob from given receive function and store in cache
             lib_data = receive()
-            write_library_binary(lib_data, module_signature, cache_params)
+            write_library_binary(lib_data, signature, cache_params)
 
         else:
             # Do nothing (we'll be waiting below for other process to build)
@@ -156,7 +167,7 @@ def jit(signature, jitable, params, generate=None, send=None, receive=None, wait
             wait()
 
         # Finally load library from disk cache (places in memory cache)
-        lib = load_library(module_signature, cache_params)
+        lib = load_library(signature, cache_params)
 
-    # Return library
-    return lib
+    # Return built library and its signature
+    return lib, signature
