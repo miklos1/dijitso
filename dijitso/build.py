@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -18,12 +18,13 @@
 
 """Utilities for building libraries with dijitso."""
 
-from __future__ import print_function
+from __future__ import unicode_literals
 
 import os
 from dijitso.system import get_status_output
 from dijitso.log import log, error
 from dijitso.cache import create_lib_filename, make_lib_dir
+
 
 def make_compile_command(src_filename, lib_filename, build_params):
     """Piece together the compile command from build params.
@@ -64,6 +65,7 @@ def make_compile_command(src_filename, lib_filename, build_params):
 
     return args
 
+
 def compile_library(src_filename, lib_filename, build_params):
     """Compile shared library from source file.
 
@@ -85,6 +87,7 @@ def compile_library(src_filename, lib_filename, build_params):
         error("Compile command\n  %s\nfailed with code %d:\n%s" % (cmds, status, output))
 
     return status
+
 
 def build_shared_library(signature, src_filename, params):
     """Build shared library from a source file and store library in cache."""

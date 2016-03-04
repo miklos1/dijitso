@@ -76,7 +76,7 @@ DLL_EXPORT int get_test_value_%(testvalue)d(void * p)
 }
 """
 
-def mygenerate(signature, jitable, generator_params):
+def mygenerate(signature, module_signature, jitable, generator_params):
     """."""
     code_parts = dict(
         generator_params=str(generator_params),
@@ -93,8 +93,9 @@ def mygenerate(signature, jitable, generator_params):
         _code_template_factory % code_parts,
         _code_template_testhook % code_parts,
         ]
+    header = "// Dummy header"
     code = '\n'.join(parts)
-    return code
+    return header, code
 
 
 def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"):

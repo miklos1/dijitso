@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -17,9 +17,12 @@
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import unicode_literals
+
 
 def log(msg): # TODO: Replace with proper logging
     print(msg)
+
 
 def error(msg):
     raise RuntimeError(msg)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -18,10 +18,16 @@
 
 """Utilities for dijitso parameters."""
 
+from __future__ import unicode_literals
+
+from six import string_types
 from six.moves import configparser
-from dijitso.log import log, error
+
 from glob import glob
 import os
+
+from dijitso.log import log, error
+
 
 def discover_config_filename():
     basename = ".dijitso.conf"
@@ -40,6 +46,7 @@ def discover_config_filename():
             return names[0]
     return None
 
+
 _config_file_contents = None
 def read_config_file():
     global _config_file_contents
@@ -55,6 +62,7 @@ def read_config_file():
                     _config_file_contents[category][name] = value
     return _config_file_contents
 
+
 def default_cache_params():
     p = dict(
         root_dir="~/.cache/dijitso",
@@ -62,14 +70,15 @@ def default_cache_params():
         src_dir="src",
         lib_dir="lib",
         comm_dir="comm",
-        #err_dir="err",
-        src_prefix="dijitso_",
-        src_postfix=".cpp",
+        log_dir="log",
         src_storage="keep",
-        lib_prefix="lib_dijitso_",
+        src_postfix=".cpp",
+        inc_postfix=".h",
         lib_postfix=".so",
+        lib_prefix="libdijitso",
         )
     return p
+
 
 def default_build_params():
     p = dict(
@@ -85,8 +94,10 @@ def default_build_params():
         )
     return p
 
+
 def default_generator_params():
     return {}
+
 
 def default_params():
     p = dict(
@@ -96,6 +107,7 @@ def default_params():
         )
     return p
 
+
 _session_defaults = None
 def session_default_params():
     global _session_defaults
@@ -103,18 +115,21 @@ def session_default_params():
         _session_defaults = validate_params()
     return _session_defaults.copy()
 
+
 def as_str_tuple(p):
     """Convert p to a tuple of strings, allowing a list or tuple of strings or a single string as input."""
-    if isinstance(p, str):
+    if isinstance(p, string_types):
         return (p,)
     elif isinstance(p, (tuple, list)):
-        if all(isinstance(item, str) for item in p):
+        if all(isinstance(item, string_types) for item in p):
             return p
     raise RuntimeError("Expecting a string or list of strings, not %s." % (p,))
+
 
 def copy_params(params):
     "Copy two-level dict of params."
     return {k:v.copy() for k,v in params.items()}
+
 
 def check_params_keys(default, params):
     "Check that keys in params exist in defaults."
@@ -126,6 +141,7 @@ def check_params_keys(default, params):
             if invalid:
                 error("Invalid parameter names %s in category '%s'." % (sorted(invalid), category))
 
+
 def merge_params(default, params):
     "Merge two-level param dicts."
     p = {}
@@ -135,6 +151,7 @@ def merge_params(default, params):
         if v:
             p[category].update(v)
     return p
+
 
 def validate_params(params):
     """Validate parameters to dijitso and fill in with defaults where missing."""

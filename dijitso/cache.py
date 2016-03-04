@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -18,7 +18,8 @@
 
 """Utilities for disk cache features of dijitso."""
 
-from __future__ import print_function
+from __future__ import unicode_literals
+
 import os
 import ctypes
 import gzip
@@ -26,9 +27,15 @@ import shutil
 from dijitso.system import makedirs, deletefile
 from dijitso.log import log, error
 
+
+def create_inc_filename(signature, cache_params):
+    "Create source code filename based on signature and params."
+    basename = signature + cache_params["inc_postfix"]
+    return os.path.join(cache_params["root_dir"], cache_params["inc_dir"], basename)
+
 def create_src_filename(signature, cache_params):
     "Create source code filename based on signature and params."
-    basename = cache_params["src_prefix"] + signature + cache_params["src_postfix"]
+    basename = signature + cache_params["src_postfix"]
     return os.path.join(cache_params["root_dir"], cache_params["src_dir"], basename)
 
 def create_lib_filename(signature, cache_params):
@@ -36,11 +43,29 @@ def create_lib_filename(signature, cache_params):
     basename = cache_params["lib_prefix"] + signature + cache_params["lib_postfix"]
     return os.path.join(cache_params["root_dir"], cache_params["lib_dir"], basename)
 
+
+def make_inc_dir(cache_params):
+    makedirs(os.path.join(cache_params["root_dir"], cache_params["inc_dir"]))
+
 def make_src_dir(cache_params):
     makedirs(os.path.join(cache_params["root_dir"], cache_params["src_dir"]))
 
 def make_lib_dir(cache_params):
     makedirs(os.path.join(cache_params["root_dir"], cache_params["lib_dir"]))
+
+def make_log_dir(cache_params):
+    makedirs(os.path.join(cache_params["root_dir"], cache_params["log_dir"]))
+
+_ensure_dirs_called = False
+def ensure_dirs(cache_params):
+    global _ensure_dirs_called
+    if not _ensure_dirs_called:
+        make_inc_dir(cache_params)
+        make_src_dir(cache_params)
+        make_lib_dir(cache_params)
+        make_log_dir(cache_params)
+        _ensure_dirs_called = True
+
 
 def read_library_binary(lib_filename):
     "Read compiled shared library as binary blob into a numpy byte array."
@@ -53,6 +78,7 @@ def write_library_binary(lib_data, signature, cache_params):
     lib_filename = create_lib_filename(signature, cache_params)
     lib_data.tofile(lib_filename)
     # TODO: Set permissions?
+
 
 def load_library(signature, cache_params):
     """Load existing dynamic library from disk.
@@ -74,6 +100,7 @@ def load_library(signature, cache_params):
         _lib_cache[signature] = lib
     return lib
 
+
 # A cache is always something to be careful about.
 # This one stores references to loaded jit-compiled libraries,
 # which will stay in memory unless manually unloaded anyway
@@ -92,52 +119,77 @@ def lookup_lib(lib_signature, cache_params):
     # Return library or None
     return lib
 
-# A cache is always something to be careful about.
-# This one only stores filenames to generated code for
-# jit-compiled libraries, and should not cause any trouble.
-_src_cache = {}
-def lookup_src(src_signature, cache_params):
-    """Lookup source code in disk cache.
 
-    Returns filename if found, otherwise None.
-    """
-    # TODO: If source code is compressed on disk this will fail. If so, uncompress!
-    # Look for already found source filename in memory cache
-    src_filename = _src_cache.get(src_signature)
-    if src_filename is None:
-        # Cache miss in memory, try looking on disk
-        src_filename = create_src_filename(src_signature, cache_params)
-        if os.path.exists(src_filename):
-            _src_cache[src_signature] = src_filename
+def read_file(filename):
+    "Try to read file content, if necessary unzipped from filename.gz, return None if not found."
+    content = None
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            content = f.read()
+    elif os.path.exists(filename + ".gz"):
+        with gzip.open(filename + ".gz") as f:
+            content = f.read()
+    return content
+
+
+def read_src(signature, cache_params):
+    """Lookup source code in disk cache and return file contents or None."""
+    filename = create_src_filename(signature, cache_params)
+    return read_file(filename)
+
+def read_inc(signature, cache_params):
+    """Lookup header file in disk cache and return file contents or None."""
+    filename = create_inc_filename(signature, cache_params)
+    return read_file(filename)
+
+def read_log(signature, cache_params):
+    """Lookup log file in disk cache and return file contents or None."""
+    filename = create_log_filename(signature, cache_params)
+    return read_file(filename)
+
+
+def store_textfile(filename, content):
+    if os.path.exists(filename):
+        # Error handling if the file was already there
+        with open(filename, "r") as f:
+            old_content = f.read()
+        if old_content != content:
+            # If the existing source code file has different content, make a backup and warn again.
+            # after writing new and different source to file with .newer suffix
+            with open(filename + ".orig", "w") as f:
+                f.write(old_content)
+            # Now write the code to file, overwriting previous content
+            with open(filename, "w") as f:
+                f.write(content)
+            warning("The old file contents differ from the new and has been backed up as:\n  %s" % (filename+".orig",))
         else:
-            src_filename = None
-    # Return filename or None
-    return src_filename
+            warning("File already exists with same contents in dijitso cache:\n  %s" % (filename,))
+    else:
+        # Write the code to new file
+        with open(filename, "w") as f:
+            f.write(content)
+    return filename
 
-def store_src(signature, src, cache_params):
+def store_src(signature, content, cache_params):
     "Store source code in file within dijitso directories."
     make_src_dir(cache_params)
-    src_filename = create_src_filename(signature, cache_params)
+    filename = create_src_filename(signature, cache_params)
+    store_textfile(filename, content)
+    return filename
 
-    if not os.path.exists(src_filename):
-        # Expected behaviour: just write the code to file
-        with open(src_filename, "w") as f:
-            f.write(src)
-    else:
-        # Error handling if the file was already there
-        with open(src_filename, "r") as f:
-            found_src = f.read()
-        if found_src != src:
-            # If the existing source code file has different content, fail
-            # after writing new and different source to file with .newer suffix
-            with open(src_filename + ".new", "w") as f:
-                f.write(src)
-            error("File\n  %s\nalready exists and its contents are different.\n"
-                  "The new source code has been written to\n  %s" % (src_filename, src_filename+".new"))
-    return src_filename
+def store_inc(signature, content, cache_params):
+    "Store header file within dijitso directories."
+    make_inc_dir(cache_params)
+    filename = create_inc_filename(signature, cache_params)
+    store_textfile(filename, content)
+    return filename
+
 
 def compress_source_code(src_filename, cache_params):
-    # Keep, delete or compress source code
+    """Keep, delete or compress source code based on value of cache parameter 'src_storage'.
+
+    Can be "keep", "delete", or "compress".
+    """
     src_storage = cache_params["src_storage"]
     if src_storage == "keep":
         pass

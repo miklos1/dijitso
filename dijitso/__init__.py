@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -15,6 +15,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import unicode_literals
 
 """This is dijitso -- a lightweight distributed just-in-time shared library builder."""
 

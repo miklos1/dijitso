@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -16,27 +16,19 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-import os, errno, ctypes, shutil, uuid
-from glob import glob
-import numpy
+from __future__ import unicode_literals
 
-from dijitso.system import deletefile
+import ctypes
+
 from dijitso.log import log, error
 from dijitso.params import validate_params
+from dijitso.cache import ensure_dirs
+from dijitso.cache import store_src, store_inc, compress_source_code
 from dijitso.cache import lookup_lib, load_library
 from dijitso.cache import write_library_binary, read_library_binary
-from dijitso.cache import lookup_src, store_src, compress_source_code
 from dijitso.build import build_shared_library
+from dijitso.signatures import extend_signature
 
-import hashlib
-
-def extend_signature(sig, params):
-    "Extend a signature hash with a parameter hash."
-    h = hashlib.sha1()
-    for k in sorted(params):
-        h.update(repr((k, params[k])).encode('utf-8'))
-    return sig[:8] + "_" + h.hexdigest()[:8]
 
 def extract_factory_function(lib, name):
     """Extract function from loaded library.
@@ -48,6 +40,7 @@ def extract_factory_function(lib, name):
     function = getattr(lib, name)
     function.restype = ctypes.c_void_p
     return function
+
 
 def jit(signature, jitable, params, generate=None, send=None, receive=None, wait=None):
     """Driver for just in time compilation and import of a shared library with a cache mechanism.
@@ -103,67 +96,67 @@ def jit(signature, jitable, params, generate=None, send=None, receive=None, wait
       * Build on a single global root node and send a copy of
         the binary to one process per physical cache directory.
 
-    It is not recommended to have multiple builder processes sharing
-    a physical cache directory.
+    It is highly recommended to avoid have multiple builder processes
+    sharing a physical cache directory.
     """
+    # Validation and completion with defaults for missing parameters
     params = validate_params(params)
 
-    # Combine jitable signature and parameters
-    #src_signature = extend_signature(signature, params["generator_params"])
-    #lib_signature = extend_signature(src_signature, params["build_params"])
-    # FIXME: Improve signature handling
-    src_signature = signature
-    lib_signature = signature
+    # Extend provided signature of jitable with given parameters
+    module_signature = extend_signature(signature, {
+        "generator_params": params["generator_params"],
+        "build_params": params["build_params"]
+        })
 
-    # Look for library in memory or disk cache
+    # 0) Look for library in memory or disk cache
     cache_params = params["cache_params"]
-    lib = lookup_lib(lib_signature, cache_params)
+    lib = lookup_lib(module_signature, cache_params)
 
     if lib is None:
         # Since we didn't find the library in cache, we must build it.
 
-        if generate is not None:
-            if receive is not None:
-                error("Please provide only one of generate or receive.")
+        if receive and generate:
+            # We're not supposed to generate if we're receiving
+            error("Please provide only one of generate or receive.")
 
-            # Look for source code in cache before eventually generating the code
-            src_filename = lookup_src(src_signature, cache_params)
+        elif generate:
+            # 1) Generate source code
+            header, source = generate(signature, module_signature, jitable, params["generator_params"])
 
-            if src_filename is None:
-                # 1) Generate source code
-                src = generate(src_signature, jitable, params["generator_params"])
-                # TODO: Get header and implementation content separately
+            # 2) Store header and source code in dijitso include and src dirs
+            ensure_dirs(cache_params)
+            src_filename = store_src(module_signature, source, cache_params)
+            if header:
+                store_inc(module_signature, header, cache_params)
 
-                # 2) Store source code in dijitso src dir
-                src_filename = store_src(src_signature, src, params["cache_params"])
-                # TODO: Store header and implementation separately
-
-            # 3) Compile shared library and store in cache
-            lib_filename = build_shared_library(lib_signature, src_filename, params)
+            # 3) Compile shared library and store in dijitso lib dir
+            lib_filename = build_shared_library(module_signature, src_filename, params)
 
             # Locally compress or delete source code based on params
+            # (only need to keep for debugging or other manual inspection)
             compress_source_code(src_filename, cache_params)
 
-            # 4) Send library over network if we have a send function
-            if send is not None:
+            # 4a) Send library over network if we have a send function
+            if send:
                 lib_data = read_library_binary(lib_filename)
                 send(lib_data)
 
-        elif receive is not None:
-            # 4) Get library as binary blob from given receive function and store in cache
+        elif receive:
+            # 4b) Get library as binary blob from given receive function and store in cache
             lib_data = receive()
-            write_library_binary(lib_data, lib_signature, cache_params)
+            write_library_binary(lib_data, module_signature, cache_params)
 
         else:
-            # Do nothing
-            pass
+            # Do nothing (we'll be waiting below for other process to build)
+            if not wait:
+                error("Please provide wait if not providing one of generate or receive.")
 
         # 5) Notify waiters that we're done / wait for builder to notify us
-        if wait is not None:
+        if wait:
             wait()
 
         # Finally load library from disk cache (places in memory cache)
-        lib = load_library(lib_signature, cache_params)
+        lib = load_library(module_signature, cache_params)
 
     # Return library
     return lib

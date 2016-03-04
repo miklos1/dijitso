@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -18,12 +18,19 @@
 
 """Utilities for mpi features of dijitso."""
 
-from __future__ import print_function
-import os, uuid
+from __future__ import unicode_literals
+
+from six import string_types
+
+import os
+import uuid
 from glob import glob
+
 import numpy
+
 from dijitso.cache import make_lib_dir
 from dijitso.log import log, error
+
 
 def bcast_uuid(comm):
     "Create a unique id shared across all processes in comm."
@@ -33,6 +40,7 @@ def bcast_uuid(comm):
         guid[0] = numpy.uint64(uuid.uuid4().int & ((1<<64)-1))
     comm.Bcast(guid, root=0)
     return int(guid[0])
+
 
 def discover_path_access_ranks(comm, path):
     """Discover which ranks share access to the same directory.
@@ -79,6 +87,7 @@ def discover_path_access_ranks(comm, path):
     os.remove(filename)
     return noderanks
 
+
 def gather_global_partitions(comm, partition):
     """Gather an ordered list of unique partition values within comm."""
     global_partitions = numpy.ndarray((comm.size,), dtype=numpy.uint64)
@@ -86,6 +95,7 @@ def gather_global_partitions(comm, partition):
     local_partition[0] = partition
     comm.Allgather(local_partition, global_partitions)
     return sorted(set(global_partitions))
+
 
 def create_subcomm(comm, ranks):
     "Create a communicator for a set of ranks."
@@ -95,6 +105,7 @@ def create_subcomm(comm, ranks):
     subgroup.Free()
     group.Free()
     return subcomm
+
 
 def create_node_comm(comm, comm_dir):
     """Create comms for communicating within a node."""
@@ -107,11 +118,13 @@ def create_node_comm(comm, comm_dir):
     node_comm = comm.Split(node_root, node_ranks.index(comm.rank))
     return node_comm, node_root
 
+
 def create_node_roots_comm(comm, node_root):
     """Build comm for communicating among the node roots."""
     unique_global_node_roots = gather_global_partitions(comm, node_root)
     roots_comm = create_subcomm(comm, unique_global_node_roots)
     return roots_comm
+
 
 def create_comms_and_role_root(comm, node_comm, node_root):
     """Approach: global root builds and sends binary to node roots, everyone waits on their node group."""
@@ -127,6 +140,7 @@ def create_comms_and_role_root(comm, node_comm, node_root):
         role = "waiter"
     return copy_comm, wait_comm, role
 
+
 def create_comms_and_role_node(comm, node_comm, node_root):
     """Approach: each node root builds, everyone waits on their node group."""
     copy_comm = None
@@ -138,6 +152,7 @@ def create_comms_and_role_node(comm, node_comm, node_root):
         assert comm.rank != node_root
         role = "waiter"
     return copy_comm, wait_comm, role
+
 
 def create_comms_and_role_process(comm, node_comm, node_root):
     """Approach: each process builds its own module, no communication.
@@ -156,6 +171,7 @@ def create_comms_and_role_process(comm, node_comm, node_root):
     assert comm.rank == node_root
     role = "builder"
     return copy_comm, wait_comm, role
+
 
 def create_comms_and_role(comm, comm_dir, buildon):
     """Determine which role each process should take, and create
@@ -182,6 +198,7 @@ def create_comms_and_role(comm, comm_dir, buildon):
             error("Invalid parameter buildon=%s" % (buildon,))
     return copy_comm, wait_comm, role
 
+
 def send_binary(comm, lib_data):
     "Send compiled library as binary blob over MPI."
     # TODO: Test this in parallel locally.
@@ -201,6 +218,7 @@ def send_binary(comm, lib_data):
     log("rank %d: send data with root=%d." % (comm.rank, root))
     comm.Bcast(lib_data, root=root)
 
+
 def receive_binary(comm):
     "Store shared library received as a binary blob to cache."
     # Check that we are not the root
@@ -218,6 +236,7 @@ def receive_binary(comm):
     comm.Bcast(lib_data, root=root)
 
     return lib_data
+
 
 def foo():
     # TODO: Should call these once (for each comm at least) globally in dolfin, not on each jit call

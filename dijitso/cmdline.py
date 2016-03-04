@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -25,6 +25,7 @@ The docstrings in the cmd_<cmdname> are shown on 'dijitso cmdname --help'.
 The 'args' argument to cmd_* is a Namespace object with the commandline arguments.
 """
 
+from __future__ import unicode_literals
 from __future__ import print_function
 
 from dijitso.params import validate_params
@@ -47,35 +48,42 @@ def cmd_config(args, params):
             print("    %s: %s" % (name, params[category][name]))
     return 0
 
+
 def _cmd_has(args, params):
     "check if file(s) exist in repository"
     print("has", args)
     return 0
+
 
 def _cmd_show(args, params):
     "show file(s) in repository"
     print("show", args)
     return 0
 
+
 def _cmd_grep(args, params):
     "grep content of file(s) in repository"
     print("grep", args)
     return 0
+
 
 def _cmd_add(args=None):
     "add file(s) to repository"
     print("add", args)
     return 0
 
+
 def _cmd_cp(args, params):
     "copy file(s) from repository"
     print("cp", args)
     return 0
 
+
 def _cmd_rm(args, params):
     "remove file(s) from repository"
     print("rm", args)
     return 0
+
 
 def _cmd_clean(args, params):
     "remove all files from repository"

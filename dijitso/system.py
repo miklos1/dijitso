@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2015 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs
 #
 # This file is part of DIJITSO.
 #
@@ -19,8 +19,11 @@
 """Utilities for interfacing with the system."""
 
 from __future__ import print_function
+from __future__ import unicode_literals
+
 import os, errno, ctypes, gzip, shutil, uuid
 from glob import glob
+
 
 def makedirs(path):
     """Creates a directory (tree). If directory already exists it does nothing."""
@@ -30,6 +33,7 @@ def makedirs(path):
         if e.errno != errno.EEXIST:
             raise
 
+
 def deletefile(filename):
     """Remove a file. If the file is not there it does nothing."""
     try:
@@ -37,6 +41,7 @@ def deletefile(filename):
     except os.error as e:
         if e.errno != errno.ENOENT:
             raise
+
 
 # TODO: Copy here to make configurable through dijitso params.
 #       Just letting it stay in instant for now.
