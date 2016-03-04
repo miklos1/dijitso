@@ -53,9 +53,9 @@ def read_config_file():
     global _config_file_contents
     if _config_file_contents is None:
         filename = discover_config_filename()
-        log("Using config file '%s'." % (filename,))
         _config_file_contents = {}
         if filename is not None:
+            log("Using config file '%s'." % (filename,))
             parser = configparser.SafeConfigParser()
             parser.read(filename)
             for category in parser.sections():

@@ -38,23 +38,36 @@ def create_src_filename(signature, cache_params):
     basename = signature + cache_params["src_postfix"]
     return os.path.join(cache_params["root_dir"], cache_params["src_dir"], basename)
 
-def create_lib_filename(signature, cache_params):
+def create_lib_basename(signature, cache_params):
     "Create library filename based on signature and params."
     basename = cache_params["lib_prefix"] + signature + cache_params["lib_postfix"]
+    return basename
+
+def create_lib_filename(signature, cache_params):
+    "Create library filename based on signature and params."
+    basename = create_lib_basename(signature, cache_params)
     return os.path.join(cache_params["root_dir"], cache_params["lib_dir"], basename)
 
 
 def make_inc_dir(cache_params):
-    makedirs(os.path.join(cache_params["root_dir"], cache_params["inc_dir"]))
+    d = os.path.join(cache_params["root_dir"], cache_params["inc_dir"])
+    makedirs(d)
+    return d
 
 def make_src_dir(cache_params):
-    makedirs(os.path.join(cache_params["root_dir"], cache_params["src_dir"]))
+    d = os.path.join(cache_params["root_dir"], cache_params["src_dir"])
+    makedirs(d)
+    return d
 
 def make_lib_dir(cache_params):
-    makedirs(os.path.join(cache_params["root_dir"], cache_params["lib_dir"]))
+    d = os.path.join(cache_params["root_dir"], cache_params["lib_dir"])
+    makedirs(d)
+    return d
 
 def make_log_dir(cache_params):
-    makedirs(os.path.join(cache_params["root_dir"], cache_params["log_dir"]))
+    d = os.path.join(cache_params["root_dir"], cache_params["log_dir"])
+    makedirs(d)
+    return d
 
 _ensure_dirs_called = False
 def ensure_dirs(cache_params):

@@ -20,13 +20,23 @@
 
 from __future__ import unicode_literals
 
+import tempfile
 import os
 from dijitso.system import get_status_output
 from dijitso.log import log, error
-from dijitso.cache import create_lib_filename, make_lib_dir
+from dijitso.cache import create_lib_filename, create_lib_basename, make_lib_dir, make_inc_dir
 
 
-def make_compile_command(src_filename, lib_filename, build_params):
+def make_unique(dirs):
+    # NB! O(n^2) so use only on small data sets
+    udirs = []
+    for d in dirs:
+        if d not in udirs:
+            udirs.append(d)
+    return tuple(udirs)
+
+
+def make_compile_command(src_filename, lib_filename, build_params, cache_params):
     """Piece together the compile command from build params.
 
     Returns the command as a list with the command and its arguments.
@@ -44,14 +54,23 @@ def make_compile_command(src_filename, lib_filename, build_params):
     else:
         args.extend(build_params["cxxflags_opt"])
 
-    # Add include dirs
-    args.extend("-I"+path for path in build_params["include_dirs"])
+    # Get dijitso dirs based on cache_params
+    inc_dir = make_inc_dir(cache_params)
+    lib_dir = make_lib_dir(cache_params)
+
+    # Add dijitso directories to includes, libs, and rpaths
+    include_dirs = make_unique(build_params["include_dirs"] + (inc_dir,))
+    lib_dirs = make_unique(build_params["lib_dirs"] + (lib_dir,))
+    rpath_dirs = make_unique(build_params["rpath_dirs"] + (lib_dir,))
+    
+    # Add include dirs so compiler will find included headers
+    args.extend("-I"+path for path in include_dirs)
 
     # Add library dirs so linker will find libraries
-    args.extend("-L"+path for path in build_params["lib_dirs"])
+    args.extend("-L"+path for path in lib_dirs)
 
     # Add library dirs so runtime loader will find libraries
-    args.extend("-Wl,-rpath,"+path for path in build_params["rpath_dirs"])
+    args.extend("-Wl,-rpath,"+path for path in rpath_dirs)
 
     # Add source filename
     args.append(src_filename)
@@ -62,7 +81,7 @@ def make_compile_command(src_filename, lib_filename, build_params):
     return args
 
 
-def compile_library(src_filename, lib_filename, build_params):
+def compile_library(src_filename, lib_filename, build_params, cache_params):
     """Compile shared library from source file.
 
     Assumes source code resides in src_filename on disk.
@@ -70,30 +89,35 @@ def compile_library(src_filename, lib_filename, build_params):
     to produce shared library in lib_filename.
     """
     # Build final command string
-    cmd = make_compile_command(src_filename, lib_filename, build_params)
+    cmd = make_compile_command(src_filename, lib_filename, build_params, cache_params)
     cmds = " ".join(cmd)
 
     # Execute command
-    # TODO: Capture compiler output and log it to .dijitso/err/
+    # TODO: Capture compiler output and log it to .dijitso/log/
     # TODO: Parse compiler output to find error(s) for better error messages.
     status, output = get_status_output(cmd)
 
     # Failure to compile is usually a showstopper
     if status:
         error("Compile command\n  %s\nfailed with code %d:\n%s" % (cmds, status, output))
-
-    return status
+    #return status
 
 
 def build_shared_library(signature, src_filename, params):
     """Build shared library from a source file and store library in cache."""
-    # TODO: Currently compiling directly into dijitso lib dir. Use temp dir and move on success.
 
+    # Create a safe temp directory and a library filename in there
+    tmp = tempfile.mkdtemp()
+    temp_lib_filename = os.path.join(tmp, create_lib_basename(signature, params["cache"]))
+
+    # Compile generated source code to dynamic library
+    compile_library(src_filename, temp_lib_filename, params["build"], params["cache"])
+
+    # Move compiled library to cache
     # Prepare target directory and filename for library
     make_lib_dir(params["cache"])
     lib_filename = create_lib_filename(signature, params["cache"])
-
-    # Compile generated source code to dynamic library
-    compile_library(src_filename, lib_filename, params["build"])
+    if temp_lib_filename != lib_filename:
+        os.rename(temp_lib_filename, lib_filename)
 
     return lib_filename
