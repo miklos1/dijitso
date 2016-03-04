@@ -91,8 +91,12 @@ def default_cxx_debug_flags():
 
 
 def default_cxx_release_flags():
-    # TODO: Improve optimization flags: vectorization, safe parts of fastmath flags, ...
-    return ("-O3",)
+    # These flags deal with handling of nan, inf, underflow, division by zero, etc.
+    # which should be ok for most of our purposes. It might be better to place them
+    # in ffc or make them dependent on compiler or optional or whatever, just throwing
+    # them in here now to see how it works out.
+    safe_fastmath_parts = ("-fno-math-errno", "-fno-trapping-math", "-ffinite-math-only")
+    return ("-O3",) + safe_fastmath_parts
 
 
 def default_build_params():
