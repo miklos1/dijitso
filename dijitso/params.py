@@ -25,6 +25,7 @@ from six.moves import configparser
 
 from glob import glob
 import os
+import copy
 
 from dijitso.log import log, error
 
@@ -80,12 +81,25 @@ def default_cache_params():
     return p
 
 
+def default_cxx_flags():
+    return ("-shared", "-fPIC", "-fvisibility=hidden", "-std=c++11")
+
+
+def default_cxx_debug_flags():
+    return ("-g", "-O0")
+
+
+def default_cxx_release_flags():
+    # TODO: Improve optimization flags: vectorization, safe parts of fastmath flags, ...
+    return ("-O3",)
+
+
 def default_build_params():
     p = dict(
         cxx="g++",
-        cxxflags=("-shared", "-fPIC", "-fvisibility=hidden", "-std=c++11"),
-        cxxflags_debug=("-g", "-O0"),
-        cxxflags_opt=("-O3",), # TODO: Improve optimization flags: vectorization, safe parts of fastmath flags, ...
+        cxxflags=default_cxx_flags(),
+        cxxflags_debug=default_cxx_debug_flags(),
+        cxxflags_opt=default_cxx_release_flags(),
         include_dirs=(),
         lib_dirs=(),
         rpath_dirs="use_lib_dirs",
@@ -113,7 +127,7 @@ def session_default_params():
     global _session_defaults
     if _session_defaults is None:
         _session_defaults = validate_params()
-    return _session_defaults.copy()
+    return copy.deepcopy(_session_defaults)
 
 
 def as_str_tuple(p):
