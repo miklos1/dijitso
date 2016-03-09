@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 import tempfile
 import os
+import shutil
 from dijitso.system import get_status_output
 from dijitso.log import log, error
 from dijitso.cache import create_lib_filename, create_lib_basename, make_lib_dir, make_inc_dir
@@ -118,6 +119,6 @@ def build_shared_library(signature, src_filename, params):
     make_lib_dir(params["cache"])
     lib_filename = create_lib_filename(signature, params["cache"])
     if temp_lib_filename != lib_filename:
-        os.rename(temp_lib_filename, lib_filename)
+        shutil.move(temp_lib_filename, lib_filename)
 
     return lib_filename
