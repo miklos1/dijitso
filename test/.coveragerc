@@ -1,2 +1,2 @@
 [html]
-directory=htmlcov-$MPISIZE-$MYRANK
+directory=htmlcov${MPISIZE}${MYRANK}

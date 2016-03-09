@@ -2,8 +2,8 @@
 set -e exit
 
 echo Running tests in serial:
-export MYRANK=serial
-export MPISIZE=0
+export MYRANK=
+export MPISIZE=
 python -B -m pytest -svl --cov-report html --cov=dijitso
 
 for p in 1 4 8 16; do
