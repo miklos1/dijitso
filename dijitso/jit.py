@@ -133,6 +133,7 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
         elif generate:
             # 1) Generate source code
             header, source = generate(jitable, name, signature, params["generator"])
+            dependencies = ()  # FIXME return dependency signatures from generate
 
             # 2) Store header and source code in dijitso include and src dirs
             ensure_dirs(cache_params)
@@ -141,7 +142,7 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
                 store_inc(signature, header, cache_params)
 
             # 3) Compile shared library and store in dijitso lib dir
-            lib_filename = build_shared_library(signature, src_filename, params)
+            lib_filename = build_shared_library(signature, src_filename, dependencies, params)
 
             # Locally compress or delete source code based on params
             # (only need to keep for debugging or other manual inspection)
