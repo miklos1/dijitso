@@ -73,11 +73,15 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
     If no library has been cached, the passed 'generate' function is
     called to generate the source code:
 
-        header, source = generate(jitable, name, signature, params["generator"])
+        header, source, dependencies = \
+            generate(jitable, name, signature, params["generator"])
 
     It is expected to translate the 'jitable' object into
-    C or C++(default) source code which will subsequently be
+    C or C++ (default) source code which will subsequently be
     compiled as a shared library and stored in the disk cache.
+    The returned 'dependencies' should be a tuple of signatures
+    returned from other completed dijitso.jit calls, and are
+    linked to when building.
 
     The compiled shared library is then loaded with ctypes and returned.
 
@@ -118,6 +122,14 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
     It is highly recommended to avoid have multiple builder processes
     sharing a physical cache directory.
     """
+    # TODO: Could simplify interface here and roll
+    #   (jitable, name, params["generator"]) into a single jitobject?
+    # TODO: send/receive doesn't combine well with generate
+    #   triggering additional jit calls for dependencies.
+    #   It's possible that dependencies are hard to determine without
+    #   generate doing some analysis that we want to avoid.
+    #   Drop send/receive? Probably not that useful anyway.
+
     # 0) Look for library in memory or disk cache
     signature = jit_signature(name, params)
     cache_params = params["cache"]
@@ -132,8 +144,7 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
 
         elif generate:
             # 1) Generate source code
-            header, source = generate(jitable, name, signature, params["generator"])
-            dependencies = ()  # FIXME return dependency signatures from generate
+            header, source, dependencies = generate(jitable, name, signature, params["generator"])
 
             # 2) Store header and source code in dijitso include and src dirs
             ensure_dirs(cache_params)

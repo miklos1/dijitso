@@ -76,6 +76,7 @@ DLL_EXPORT int get_test_value_%(testvalue)d(void * p)
 }
 """
 
+
 def mygenerate(jitable, name, signature, generator_params):
     """."""
     code_parts = dict(
@@ -95,7 +96,8 @@ def mygenerate(jitable, name, signature, generator_params):
         ]
     header = "// Dummy header"
     source = '\n'.join(parts)
-    return header, source
+    dependencies = ()
+    return header, source, dependencies
 
 
 def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"):
