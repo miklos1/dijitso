@@ -29,7 +29,7 @@ else
     export MYRANK=`python -c "import dolfin;c=dolfin.mpi_comm_world();r=dolfin.MPI.rank(c);print(r);dolfin.MPI.barrier(c)"`
 fi
 
-CMD='python -B -m pytest -svl --cov-report html --cov=dijitso'
+CMD='python -B -m pytest -svl --cov-report html --cov=dijitso --junitxml report$MYRANK.xml'
 echo $CMD
 
 OUT=output.$MYRANK
