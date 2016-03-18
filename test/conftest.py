@@ -126,9 +126,9 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
 
     # Autodetect subcomms and role based on buildin option and physical disk access of processes
     from dijitso.mpi import create_comms_and_role, send_binary, receive_binary
-    from dijitso.system import makedirs
+    from dijitso.system import make_dirs
     sync_dir = os.path.join(cache_params["root_dir"], "sync")
-    makedirs(sync_dir)
+    make_dirs(sync_dir)
     copy_comm, wait_comm, role = create_comms_and_role(comm, sync_dir, buildon)
 
     # Somewhat messy definitions of send/receive/wait...

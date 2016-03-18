@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import pytest
-from dijitso.system import makedirs
+from dijitso.system import make_dirs
 from dijitso.mpi import create_comms_and_role
 
 @pytest.fixture()
 def lib_dir0(comm):
     # Fake some common and some shared libdirs
     path = ".test_roles_%d" % (comm.rank,)
-    makedirs(path)
+    make_dirs(path)
     return path
 
 @pytest.fixture()
 def lib_dir2(comm):
     # Fake some common and some shared libdirs
     path = ".test_roles_%d_of_2" % (comm.rank % 2,)
-    makedirs(path)
+    make_dirs(path)
     return path
 
 def test_role_root(comm, lib_dir2):

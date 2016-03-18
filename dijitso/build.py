@@ -22,8 +22,7 @@ from __future__ import unicode_literals
 
 import tempfile
 import os
-import shutil
-from dijitso.system import get_status_output
+from dijitso.system import get_status_output, move_file
 from dijitso.log import log, error
 from dijitso.cache import create_lib_filename, create_lib_basename, make_lib_dir, make_inc_dir
 
@@ -107,9 +106,9 @@ def compile_library(src_filename, lib_filename, build_params, cache_params):
 def build_shared_library(signature, src_filename, dependencies, params):
     """Build shared library from a source file and store library in cache."""
     # Create a safe temp directory and a library filename in there
-    tmp = tempfile.mkdtemp()
+    tmpdir = tempfile.mkdtemp()
     cache_params = params["cache"]
-    temp_lib_filename = os.path.join(tmp, create_lib_basename(signature, cache_params))
+    temp_lib_filename = os.path.join(tmpdir, create_lib_basename(signature, cache_params))
 
     # Add dependencies to build libs list
     build_params = dict(params["build"])
@@ -125,6 +124,6 @@ def build_shared_library(signature, src_filename, dependencies, params):
     make_lib_dir(cache_params)
     lib_filename = create_lib_filename(signature, cache_params)
     if temp_lib_filename != lib_filename:
-        shutil.move(temp_lib_filename, lib_filename)
+        move_file(temp_lib_filename, lib_filename)
 
     return lib_filename
