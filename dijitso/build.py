@@ -22,8 +22,7 @@ from __future__ import unicode_literals
 
 import tempfile
 import os
-import shutil
-from dijitso.system import get_status_output
+from dijitso.system import get_status_output, move_file
 from dijitso.log import log, error
 from dijitso.cache import create_lib_filename, create_lib_basename, make_lib_dir, make_inc_dir
 
@@ -104,21 +103,27 @@ def compile_library(src_filename, lib_filename, build_params, cache_params):
     #return status
 
 
-def build_shared_library(signature, src_filename, params):
+def build_shared_library(signature, src_filename, dependencies, params):
     """Build shared library from a source file and store library in cache."""
-
     # Create a safe temp directory and a library filename in there
-    tmp = tempfile.mkdtemp()
-    temp_lib_filename = os.path.join(tmp, create_lib_basename(signature, params["cache"]))
+    tmpdir = tempfile.mkdtemp()
+    cache_params = params["cache"]
+    temp_lib_filename = os.path.join(tmpdir, create_lib_basename(signature, cache_params))
+
+    # Add dependencies to build libs list
+    build_params = dict(params["build"])
+    if dependencies:
+        deplibs = tuple(create_lib_filename(depsig, cache_params) for depsig in dependencies)
+        build_params["libs"] = build_params["libs"] + deplibs
 
     # Compile generated source code to dynamic library
-    compile_library(src_filename, temp_lib_filename, params["build"], params["cache"])
+    compile_library(src_filename, temp_lib_filename, build_params, cache_params)
 
     # Move compiled library to cache
     # Prepare target directory and filename for library
-    make_lib_dir(params["cache"])
-    lib_filename = create_lib_filename(signature, params["cache"])
+    make_lib_dir(cache_params)
+    lib_filename = create_lib_filename(signature, cache_params)
     if temp_lib_filename != lib_filename:
-        shutil.move(temp_lib_filename, lib_filename)
+        move_file(temp_lib_filename, lib_filename)
 
     return lib_filename

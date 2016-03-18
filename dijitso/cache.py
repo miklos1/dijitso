@@ -22,9 +22,7 @@ from __future__ import unicode_literals
 
 import os
 import ctypes
-import gzip
-import shutil
-from dijitso.system import makedirs, deletefile
+from dijitso.system import make_dirs, delete_file, gzip_file, read_file
 from dijitso.log import log, warning, error
 
 
@@ -51,22 +49,22 @@ def create_lib_filename(signature, cache_params):
 
 def make_inc_dir(cache_params):
     d = os.path.join(cache_params["root_dir"], cache_params["inc_dir"])
-    makedirs(d)
+    make_dirs(d)
     return d
 
 def make_src_dir(cache_params):
     d = os.path.join(cache_params["root_dir"], cache_params["src_dir"])
-    makedirs(d)
+    make_dirs(d)
     return d
 
 def make_lib_dir(cache_params):
     d = os.path.join(cache_params["root_dir"], cache_params["lib_dir"])
-    makedirs(d)
+    make_dirs(d)
     return d
 
 def make_log_dir(cache_params):
     d = os.path.join(cache_params["root_dir"], cache_params["log_dir"])
-    makedirs(d)
+    make_dirs(d)
     return d
 
 _ensure_dirs_called = False
@@ -133,18 +131,6 @@ def lookup_lib(lib_signature, cache_params):
     return lib
 
 
-def read_file(filename):
-    "Try to read file content, if necessary unzipped from filename.gz, return None if not found."
-    content = None
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            content = f.read()
-    elif os.path.exists(filename + ".gz"):
-        with gzip.open(filename + ".gz") as f:
-            content = f.read()
-    return content
-
-
 def read_src(signature, cache_params):
     """Lookup source code in disk cache and return file contents or None."""
     filename = create_src_filename(signature, cache_params)
@@ -207,10 +193,8 @@ def compress_source_code(src_filename, cache_params):
     if src_storage == "keep":
         pass
     elif src_storage == "delete":
-        deletefile(src_filename)
+        delete_file(src_filename)
     elif src_storage == "compress":
-        with open(src_filename, "rb") as f_in, gzip.open(src_filename + ".gz", "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
-        deletefile(src_filename)
+        gzip_file(src_filename)
     else:
         error("Invalid src_storage parameter. Expecting 'keep', 'delete', or 'compress'.")

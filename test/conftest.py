@@ -76,6 +76,7 @@ DLL_EXPORT int get_test_value_%(testvalue)d(void * p)
 }
 """
 
+
 def mygenerate(jitable, name, signature, generator_params):
     """."""
     code_parts = dict(
@@ -95,7 +96,8 @@ def mygenerate(jitable, name, signature, generator_params):
         ]
     header = "// Dummy header"
     source = '\n'.join(parts)
-    return header, source
+    dependencies = ()
+    return header, source, dependencies
 
 
 def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"):
@@ -124,9 +126,9 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
 
     # Autodetect subcomms and role based on buildin option and physical disk access of processes
     from dijitso.mpi import create_comms_and_role, send_binary, receive_binary
-    from dijitso.system import makedirs
+    from dijitso.system import make_dirs
     sync_dir = os.path.join(cache_params["root_dir"], "sync")
-    makedirs(sync_dir)
+    make_dirs(sync_dir)
     copy_comm, wait_comm, role = create_comms_and_role(comm, sync_dir, buildon)
 
     # Somewhat messy definitions of send/receive/wait...
