@@ -26,20 +26,15 @@ import errno
 import ctypes
 import gzip
 import shutil
-import os
 import uuid
 from glob import glob
 
 
-# TODO: If we need file locking, add support here and make
-# sure all filesystem access in dijitso pass through here
-# by searching for use of 'os', 'sys', 'shutil'.
-#from flufl.lock import Lock
-#l = Lock(dst)
-
-
 def make_dirs(path):
-    """Creates a directory (tree). If directory already exists it does nothing."""
+    """Creates a directory (tree).
+
+    Ignores error if the directory already exists.
+    """
     try:
         os.makedirs(path)
     except os.error as e:
@@ -48,7 +43,10 @@ def make_dirs(path):
 
 
 def rename_file(src, dst):
-    """Rename a file. If the destination file exists, it does nothing."""
+    """Rename a file.
+
+    Ignores error if the destination file exists.
+    """
     try:
         os.rename(src, dst)
     except os.error as e:
@@ -58,9 +56,11 @@ def rename_file(src, dst):
 
 
 def try_rename_file(src, dst):
-    """Try to rename a file. If either the source file doesn't exist or the destination file exists, it does nothing."""
+    """Try to rename a file.
+
+    NB! Ignores error if the SOURCE doesn't exist or the destination already exists.
+    """
     try:
-        print("Trying rename:", src, dst)
         os.rename(src, dst)
     except os.error as e:
         # Windows may trigger on existing destination,
@@ -70,7 +70,10 @@ def try_rename_file(src, dst):
 
 
 def delete_file(filename):
-    """Remove a file. If the file is not there it does nothing."""
+    """Remove a file.
+
+    Ignores error if filename doesn't exist.
+    """
     try:
         os.remove(filename)
     except os.error as e:
@@ -79,10 +82,23 @@ def delete_file(filename):
 
 
 def gzip_file(filename):
-    """Gzip a file, new file gets .gz extension, old file is removed."""
-    with open(filename, "rb") as f_in, gzip.open(filename + ".gz", "wb") as f_out:
-        shutil.copyfileobj(f_in, f_out)
-        delete_file(filename)
+    """Gzip a file.
+
+    New file gets .gz extension added.
+
+    Does nothing if the .gz file already exists.
+
+    Original file is never touched.
+    """
+    # Avoid doing work if file is already there
+    gz_filename = filename + ".gz"
+    if os.path.exists(filename) and not os.path.exists(gz_filename):
+        # Write gzipped contents to a temp file
+        tmp_filename = filename + "-tmp-" + uuid.uuid4().hex + ".gz"
+        with open(filename, "rb") as f_in, gzip.open(tmp_filename, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+        # Safe move to target filename, other processes may compete here
+        lockfree_move_file(tmp_filename, gz_filename)
 
 
 def read_file(filename):
@@ -159,7 +175,7 @@ def lockfree_move_file(src, dst):
     if os.path.exists(dst):
         delete_file(dst + ".pub." + str(ui))
     else:
-        # Atomic rename to make file final
+        # Atomic rename to make our file final
         try_rename_file(pub(ui), dst)
     if os.path.exists(src):
         raise RuntimeError("Source file should not exist at this point!")

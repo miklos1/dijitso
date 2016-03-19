@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 
 import tempfile
 import os
-from dijitso.system import get_status_output, move_file
+from dijitso.system import get_status_output, lockfree_move_file
 from dijitso.log import log, error
 from dijitso.cache import create_lib_filename, create_lib_basename, make_lib_dir, make_inc_dir
 
@@ -93,37 +93,45 @@ def compile_library(src_filename, lib_filename, build_params, cache_params):
     cmds = " ".join(cmd)
 
     # Execute command
-    # TODO: Capture compiler output and log it to .dijitso/log/
-    # TODO: Parse compiler output to find error(s) for better error messages.
     status, output = get_status_output(cmd)
 
-    # Failure to compile is usually a showstopper
-    if status:
-        error("Compile command\n  %s\nfailed with code %d:\n%s" % (cmds, status, output))
-    #return status
+    return status, output
+
+
+def temp_dir(build_params):
+    "Return a temp directory."
+    # TODO: Allow overriding with params
+    return tempfile.mkdtemp()
 
 
 def build_shared_library(signature, src_filename, dependencies, params):
     """Build shared library from a source file and store library in cache."""
-    # Create a safe temp directory and a library filename in there
-    tmpdir = tempfile.mkdtemp()
-    cache_params = params["cache"]
-    temp_lib_filename = os.path.join(tmpdir, create_lib_basename(signature, cache_params))
-
     # Add dependencies to build libs list
+    cache_params = params["cache"]
     build_params = dict(params["build"])
     if dependencies:
         deplibs = tuple(create_lib_filename(depsig, cache_params) for depsig in dependencies)
         build_params["libs"] = build_params["libs"] + deplibs
 
-    # Compile generated source code to dynamic library
-    compile_library(src_filename, temp_lib_filename, build_params, cache_params)
-
-    # Move compiled library to cache
-    # Prepare target directory and filename for library
+    # Create a temp directory and target directory
     make_lib_dir(cache_params)
-    lib_filename = create_lib_filename(signature, cache_params)
-    if temp_lib_filename != lib_filename:
-        move_file(temp_lib_filename, lib_filename)
+    tmpdir = temp_dir(build_params)
 
-    return lib_filename
+    # Create filenames for library
+    lib_basename = create_lib_basename(signature, cache_params)
+    temp_lib_filename = os.path.join(tmpdir, lib_basename)
+    lib_filename = create_lib_filename(signature, cache_params)
+
+    # Compile generated source code to dynamic library
+    status, output = compile_library(src_filename, temp_lib_filename, build_params, cache_params)
+
+    # Failure to compile is usually a showstopper
+    if status == 0:
+        # Move compiled library to cache using safe lockfree move
+        if temp_lib_filename != lib_filename:
+            lockfree_move_file(temp_lib_filename, lib_filename)
+    else:
+        lib_filename = None
+
+    return status, output, lib_filename
+

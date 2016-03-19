@@ -20,9 +20,10 @@
 
 from __future__ import unicode_literals
 
+import uuid
 import os
 import ctypes
-from dijitso.system import make_dirs, delete_file, gzip_file, read_file
+from dijitso.system import make_dirs, delete_file, gzip_file, read_file, lockfree_move_file
 from dijitso.log import log, warning, error
 
 
@@ -148,25 +149,17 @@ def read_log(signature, cache_params):
 
 
 def store_textfile(filename, content):
-    if os.path.exists(filename):
-        # Error handling if the file was already there
-        with open(filename, "r") as f:
-            old_content = f.read()
-        if old_content != content:
-            # If the existing source code file has different content, make a backup and warn again.
-            # after writing new and different source to file with .newer suffix
-            with open(filename + ".orig", "w") as f:
-                f.write(old_content)
-            # Now write the code to file, overwriting previous content
-            with open(filename, "w") as f:
-                f.write(content)
-            warning("The old file contents differ from the new and has been backed up as:\n  %s" % (filename+".orig",))
-        else:
-            warning("File already exists with same contents in dijitso cache:\n  %s" % (filename,))
-    else:
-        # Write the code to new file
-        with open(filename, "w") as f:
-            f.write(content)
+    # Generate a unique temporary filename in same directory as the target file
+    ui = uuid.uuid4().hex
+    tmp_filename = filename + "." + str(ui)
+
+    # Write the text to a temporary file
+    with open(tmp_filename, "w") as f:
+        f.write(content)
+
+    # Safely move file to target filename
+    lockfree_move_file(tmp_filename, filename)
+
     return filename
 
 def store_src(signature, content, cache_params):
@@ -183,6 +176,13 @@ def store_inc(signature, content, cache_params):
     store_textfile(filename, content)
     return filename
 
+def store_log(signature, content, cache_params):
+    "Store log file within dijitso directories."
+    make_log_dir(cache_params)
+    filename = create_log_filename(signature, cache_params)
+    store_textfile(filename, content)
+    return filename
+
 
 def compress_source_code(src_filename, cache_params):
     """Keep, delete or compress source code based on value of cache parameter 'src_storage'.
@@ -196,5 +196,6 @@ def compress_source_code(src_filename, cache_params):
         delete_file(src_filename)
     elif src_storage == "compress":
         gzip_file(src_filename)
+        delete_file(src_filename)
     else:
         error("Invalid src_storage parameter. Expecting 'keep', 'delete', or 'compress'.")

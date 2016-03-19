@@ -153,21 +153,35 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
                 store_inc(signature, header, cache_params)
 
             # 3) Compile shared library and store in dijitso lib dir
-            lib_filename = build_shared_library(signature, src_filename, dependencies, params)
+            # NB! It's important to not raise exception on compilation failure,
+            # such that we can reach wait() together with other processes if any.
+            status, output, lib_filename = \
+                build_shared_library(signature, src_filename, dependencies, params)
 
-            # Locally compress or delete source code based on params
-            # (only need to keep for debugging or other manual inspection)
-            compress_source_code(src_filename, cache_params)
+            # Locally compress or delete source code based on params,
+            # unless compilation failed in which case we keep it for
+            # debugging or other manual inspection
+            if status == 0:
+                compress_source_code(src_filename, cache_params)
+            else:
+                # Write compiler output to dijitso log dir
+                store_log(signature, output, cache_params)
 
             # 4a) Send library over network if we have a send function
             if send:
-                lib_data = read_library_binary(lib_filename)
+                if status == 0:
+                    lib_data = read_library_binary(lib_filename)
+                else:
+                    lib_data = numpy.zeros(())
                 send(lib_data)
 
         elif receive:
             # 4b) Get library as binary blob from given receive function and store in cache
             lib_data = receive()
-            write_library_binary(lib_data, signature, cache_params)
+            # Empty if compilation failed
+            status = 0 if lib_data.shape else -1
+            if status == 0:
+                write_library_binary(lib_data, signature, cache_params)
 
         else:
             # Do nothing (we'll be waiting below for other process to build)
@@ -179,7 +193,11 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
             wait()
 
         # Finally load library from disk cache (places in memory cache)
+        # NB! This returns None if the file does not exist,
+        # i.e. if compilation failed on builder process
         lib = load_library(signature, cache_params)
+
+    # TODO: Parse output to find error(s) for better error messages
 
     # Return built library and its signature
     return lib, signature

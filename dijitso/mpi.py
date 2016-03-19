@@ -30,6 +30,7 @@ import numpy
 
 from dijitso.cache import make_lib_dir
 from dijitso.log import log, error
+from dijitso.system import delete_file
 
 
 def bcast_uuid(comm):
@@ -82,9 +83,9 @@ def discover_path_access_ranks(comm, path):
     # Clean up our own rank file. If the process is aborted,
     # this may fail to happen and leave a dangling file!
     # However the file takes no space, and the guid ensures
-    # it won't be a problem.
+    # it won't be colliding with other filenames.
     # TODO: Include a gc command in dijitso to clean up this and other stuff.
-    os.remove(filename)
+    delete_file(filename)
     return noderanks
 
 
