@@ -21,7 +21,13 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os, errno, ctypes, gzip, shutil, uuid
+import os
+import errno
+import ctypes
+import gzip
+import shutil
+import os
+import uuid
 from glob import glob
 
 
@@ -38,6 +44,28 @@ def make_dirs(path):
         os.makedirs(path)
     except os.error as e:
         if e.errno != errno.EEXIST:
+            raise
+
+
+def rename_file(src, dst):
+    """Rename a file. If the destination file exists, it does nothing."""
+    try:
+        os.rename(src, dst)
+    except os.error as e:
+        # Windows may trigger on existing destination
+        if e.errno not in errno.EEXIST:
+            raise
+
+
+def try_rename_file(src, dst):
+    """Try to rename a file. If either the source file doesn't exist or the destination file exists, it does nothing."""
+    try:
+        print("Trying rename:", src, dst)
+        os.rename(src, dst)
+    except os.error as e:
+        # Windows may trigger on existing destination,
+        # everyone triggers on missing source
+        if e.errno not in (errno.ENOENT, errno.EEXIST):
             raise
 
 
@@ -70,8 +98,73 @@ def read_file(filename):
 
 
 def move_file(srcfilename, dstfilename):
-    """Move or copy a file. If the file is not there it does nothing."""
+    """Move or copy a file."""
+    assert os.path.exists(srcfilename)
     shutil.move(srcfilename, dstfilename)
+    assert not os.path.exists(srcfilename)
+    assert os.path.exists(dstfilename)
+
+
+def lockfree_move_file(src, dst):
+    """Lockfree and portable nfs safe file move operation.
+
+    Taken from textual description at
+    http://stackoverflow.com/questions/11614815/a-safe-atomic-file-copy-operation
+    """
+    if not os.path.exists(src):
+        raise RuntimeError("Source file does not exist.")
+
+    if os.path.exists(dst):
+        with open(src) as f:
+            s = f.read()
+        with open(dst) as f:
+            d = f.read()
+        if s != d:
+            raise RuntimeError("Destination file already exists but contents differ!\nsrc: %s\ndst: %s" % (src, dst))
+        else:
+            delete_file(src)
+        return
+
+    def priv(j):
+        return dst + ".priv." + str(j)
+
+    def pub(j):
+        return dst + ".pub." + str(j)
+
+    # Create a universally unique 128 bit integer id
+    ui = uuid.uuid4().int
+
+    # Move or copy file onto the target filesystem
+    move_file(src, priv(ui))
+
+    # Atomic rename to make file visible to competing processes
+    rename_file(priv(ui), pub(ui))
+
+    # Find uuids of competing files
+    n = len(pub("*")) - 1
+    uuids = sorted(int(fn[n:]) for fn in glob(pub("*")))
+
+    # Try to delete all files with larger uuids
+    for i in uuids:
+        if i > ui:
+            delete_file(dst + ".pub." + str(i))
+    for i in uuids:
+        if i < ui:
+            # Our file is the one with a larger uuid
+            delete_file(dst + ".pub." + str(ui))
+            # Cooperate on handling uuid i
+            ui = i
+
+    # If somebody else beat us to it, delete our file
+    if os.path.exists(dst):
+        delete_file(dst + ".pub." + str(ui))
+    else:
+        # Atomic rename to make file final
+        try_rename_file(pub(ui), dst)
+    if os.path.exists(src):
+        raise RuntimeError("Source file should not exist at this point!")
+    if not os.path.exists(dst):
+        raise RuntimeError("Destination file should exist at this point!")
 
 
 # TODO: Copy here to make configurable through dijitso params.
