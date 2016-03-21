@@ -27,8 +27,13 @@ from dijitso.system import make_dirs, try_delete_file, gzip_file, read_file, loc
 from dijitso.log import log, warning, error
 
 
+def create_log_filename(signature, cache_params):
+    "Create log filename based on signature and params."
+    basename = signature + cache_params["log_postfix"]
+    return os.path.join(cache_params["cache_dir"], cache_params["log_dir"], basename)
+
 def create_inc_filename(signature, cache_params):
-    "Create source code filename based on signature and params."
+    "Create header filename based on signature and params."
     basename = signature + cache_params["inc_postfix"]
     return os.path.join(cache_params["cache_dir"], cache_params["inc_dir"], basename)
 

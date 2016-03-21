@@ -76,6 +76,7 @@ def default_cache_params():
         log_dir="log",
         src_storage="keep",
         src_postfix=".cpp",
+        log_postfix=".txt",
         inc_postfix=".h",
         lib_postfix=".so",
         lib_prefix="libdijitso",

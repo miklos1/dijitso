@@ -19,15 +19,17 @@
 from __future__ import unicode_literals
 
 import ctypes
+import os
 
 from dijitso.log import log, error
 from dijitso.params import validate_params
 from dijitso.cache import ensure_dirs
-from dijitso.cache import store_src, store_inc, compress_source_code
+from dijitso.cache import store_src, store_inc, store_log, compress_source_code
 from dijitso.cache import lookup_lib, load_library
 from dijitso.cache import write_library_binary, read_library_binary
 from dijitso.build import build_shared_library
 from dijitso.signatures import hash_params
+from dijitso.system import try_copy_file, make_dirs
 
 
 def extract_factory_function(lib, name):
@@ -153,7 +155,9 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
             ensure_dirs(cache_params)
             src_filename = store_src(signature, source, cache_params)
             if header:
-                store_inc(signature, header, cache_params)
+                inc_filename = store_inc(signature, header, cache_params)
+            else:
+                inc_filename = None
 
             # 3) Compile shared library and store in dijitso lib dir
             # NB! It's important to not raise exception on compilation failure,
@@ -168,7 +172,15 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
                 compress_source_code(src_filename, cache_params)
             else:
                 # Write compiler output to dijitso log dir
-                store_log(signature, output, cache_params)
+                log_filename = store_log(signature, output, cache_params)
+                # Try to copy source code and log to current directory
+                fail_dir = os.path.join(os.curdir, "jitfailure-" + signature)
+                make_dirs(fail_dir)
+                try_copy_file(src_filename, fail_dir)
+                if inc_filename:
+                    try_copy_file(inc_filename, fail_dir)
+                try_copy_file(log_filename, fail_dir)
+                log("Compilation failed, source files and compiler output have been written to %s" % (fail_dir,))
 
             # 4a) Send library over network if we have a send function
             if send:

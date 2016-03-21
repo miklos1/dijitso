@@ -5,7 +5,7 @@ import pytest
 import hashlib, os
 import dijitso
 import ctypes
-
+from six import string_types
 
 @pytest.fixture()
 def comm():
@@ -156,6 +156,9 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=".dijitso
     # Jit it!
     lib, signature = dijitso.jit(jitable, name, params,
                                  generate, send, receive, wait)
+
+    assert lib is not None
+    assert isinstance(signature, string_types)
 
     # Extract the factory function we want from library
     factory = dijitso.extract_factory_function(lib, "create_" + signature)

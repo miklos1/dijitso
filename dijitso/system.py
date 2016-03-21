@@ -69,6 +69,17 @@ def try_rename_file(src, dst):
             raise
 
 
+def try_copy_file(src, dst):
+    """Try to copy a file.
+
+    NB! Ignores any error.
+    """
+    try:
+        shutil.copy(src, dst)
+    except:
+        pass
+
+
 def try_delete_file(filename):
     """Try to remove a file.
 
