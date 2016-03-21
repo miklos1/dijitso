@@ -23,7 +23,7 @@ from __future__ import unicode_literals
 import uuid
 import os
 import ctypes
-from dijitso.system import make_dirs, delete_file, gzip_file, read_file, lockfree_move_file
+from dijitso.system import make_dirs, try_delete_file, gzip_file, read_file, lockfree_move_file
 from dijitso.log import log, warning, error
 
 
@@ -193,9 +193,9 @@ def compress_source_code(src_filename, cache_params):
     if src_storage == "keep":
         pass
     elif src_storage == "delete":
-        delete_file(src_filename)
+        try_delete_file(src_filename)
     elif src_storage == "compress":
         gzip_file(src_filename)
-        delete_file(src_filename)
+        try_delete_file(src_filename)
     else:
         error("Invalid src_storage parameter. Expecting 'keep', 'delete', or 'compress'.")

@@ -69,8 +69,8 @@ def try_rename_file(src, dst):
             raise
 
 
-def delete_file(filename):
-    """Remove a file.
+def try_delete_file(filename):
+    """Try to remove a file.
 
     Ignores error if filename doesn't exist.
     """
@@ -138,7 +138,7 @@ def lockfree_move_file(src, dst):
         if s != d:
             raise RuntimeError("Destination file already exists but contents differ!\nsrc: %s\ndst: %s" % (src, dst))
         else:
-            delete_file(src)
+            try_delete_file(src)
         return
 
     def priv(j):
@@ -163,19 +163,19 @@ def lockfree_move_file(src, dst):
     # Try to delete all files with larger uuids
     for i in uuids:
         if i > ui:
-            delete_file(dst + ".pub." + str(i))
+            try_delete_file(pub(i))
     for i in uuids:
         if i < ui:
             # Our file is the one with a larger uuid
-            delete_file(dst + ".pub." + str(ui))
+            try_delete_file(pub(ui))
             # Cooperate on handling uuid i
             ui = i
 
-    # If somebody else beat us to it, delete our file
     if os.path.exists(dst):
-        delete_file(dst + ".pub." + str(ui))
+        # If somebody else beat us to it, delete our file
+        try_delete_file(pub(ui))
     else:
-        # Atomic rename to make our file final
+        # Otherwise do an atomic rename to make our file final
         try_rename_file(pub(ui), dst)
     if os.path.exists(src):
         raise RuntimeError("Source file should not exist at this point!")

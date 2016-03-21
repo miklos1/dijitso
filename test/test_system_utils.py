@@ -1,7 +1,7 @@
 
 import os
 import uuid
-from dijitso.system import lockfree_move_file, get_status_output, delete_file
+from dijitso.system import lockfree_move_file, get_status_output, try_delete_file
 
 
 def test_get_status_output():
@@ -20,7 +20,7 @@ def test_lockfree_move_file():
 
     # fixed destination
     dst = os.path.join(tmpdir, "test_lockfree_move_file.dst")
-    #delete_file(dst)  # can't do this when testing with mpi!
+    #try_delete_file(dst)  # can't do this when testing with mpi!
 
     for src in srcs:
         with open(src, "w") as f:
