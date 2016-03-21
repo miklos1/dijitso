@@ -130,6 +130,9 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
     #   generate doing some analysis that we want to avoid.
     #   Drop send/receive? Probably not that useful anyway.
 
+    # Complete params with hardcoded defaults and config file defaults
+    params = validate_params(params)
+
     # 0) Look for library in memory or disk cache
     signature = jit_signature(name, params)
     cache_params = params["cache"]

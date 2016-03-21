@@ -30,12 +30,12 @@ from dijitso.log import log, warning, error
 def create_inc_filename(signature, cache_params):
     "Create source code filename based on signature and params."
     basename = signature + cache_params["inc_postfix"]
-    return os.path.join(cache_params["root_dir"], cache_params["inc_dir"], basename)
+    return os.path.join(cache_params["cache_dir"], cache_params["inc_dir"], basename)
 
 def create_src_filename(signature, cache_params):
     "Create source code filename based on signature and params."
     basename = signature + cache_params["src_postfix"]
-    return os.path.join(cache_params["root_dir"], cache_params["src_dir"], basename)
+    return os.path.join(cache_params["cache_dir"], cache_params["src_dir"], basename)
 
 def create_lib_basename(signature, cache_params):
     "Create library filename based on signature and params."
@@ -45,26 +45,26 @@ def create_lib_basename(signature, cache_params):
 def create_lib_filename(signature, cache_params):
     "Create library filename based on signature and params."
     basename = create_lib_basename(signature, cache_params)
-    return os.path.join(cache_params["root_dir"], cache_params["lib_dir"], basename)
+    return os.path.join(cache_params["cache_dir"], cache_params["lib_dir"], basename)
 
 
 def make_inc_dir(cache_params):
-    d = os.path.join(cache_params["root_dir"], cache_params["inc_dir"])
+    d = os.path.join(cache_params["cache_dir"], cache_params["inc_dir"])
     make_dirs(d)
     return d
 
 def make_src_dir(cache_params):
-    d = os.path.join(cache_params["root_dir"], cache_params["src_dir"])
+    d = os.path.join(cache_params["cache_dir"], cache_params["src_dir"])
     make_dirs(d)
     return d
 
 def make_lib_dir(cache_params):
-    d = os.path.join(cache_params["root_dir"], cache_params["lib_dir"])
+    d = os.path.join(cache_params["cache_dir"], cache_params["lib_dir"])
     make_dirs(d)
     return d
 
 def make_log_dir(cache_params):
-    d = os.path.join(cache_params["root_dir"], cache_params["log_dir"])
+    d = os.path.join(cache_params["cache_dir"], cache_params["log_dir"])
     make_dirs(d)
     return d
 

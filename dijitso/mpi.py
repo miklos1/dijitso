@@ -243,7 +243,7 @@ def foo():
     # TODO: Should call these once (for each comm at least) globally in dolfin, not on each jit call
 
     def get_comm_dir(cache_params):
-        return os.path.join(cache_params["root_dir"], cache_params["comm_dir"])
+        return os.path.join(cache_params["cache_dir"], cache_params["comm_dir"])
 
     comm_dir = get_comm_dir()
     copy_comm, wait_comm, role = create_comms_and_role(comm, comm_dir, buildon)

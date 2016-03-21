@@ -43,15 +43,15 @@ def test_mpi_jit_strategies(comm, jit_integer, buildon):
 
     if buildon == "process":
         # One dir per process
-        dijitso_root_dir = ".test_dijitso_%d" % (comm.rank,)
+        dijitso_cache_dir = ".test_dijitso_%d" % (comm.rank,)
     elif buildon == "node":
         # Less dirs than processes (gives some waiting for size > 2)
-        dijitso_root_dir = ".test_dijitso_%d" % (comm.rank % 2,)
+        dijitso_cache_dir = ".test_dijitso_%d" % (comm.rank % 2,)
     elif buildon == "root":
         # Less dirs than processes (gives a combination of copying (size>1) and waiting (size>2))
-        dijitso_root_dir = ".test_dijitso_%d" % (comm.rank % 2,)
+        dijitso_cache_dir = ".test_dijitso_%d" % (comm.rank % 2,)
 
-    shutil.rmtree(dijitso_root_dir, ignore_errors=True)
+    shutil.rmtree(dijitso_cache_dir, ignore_errors=True)
     comm.barrier()
 
     # This magic value is defined in testincludes/testinclude.h,
@@ -63,7 +63,7 @@ def test_mpi_jit_strategies(comm, jit_integer, buildon):
     for repeat in range(2):
         for jitable in (234, 567): # Note different values than serial test
             # Each integer produces different code
-            lib, factory, gettr = jit_integer(jitable, comm=comm, buildon=buildon, dijitso_root_dir=dijitso_root_dir)
+            lib, factory, gettr = jit_integer(jitable, comm=comm, buildon=buildon, dijitso_cache_dir=dijitso_cache_dir)
 
             # Inspect values for testing
             assert jitable + magic_value == gettr(factory())
@@ -78,7 +78,7 @@ def test_mpi_jit_strategies(comm, jit_integer, buildon):
 
     # If all went well we clean up, if assertions triggered
     # above we allow this cleanup to not happen
-    shutil.rmtree(dijitso_root_dir, ignore_errors=True)
+    shutil.rmtree(dijitso_cache_dir, ignore_errors=True)
     comm.barrier()
 
 # TODO: Cover various failure situations with tests

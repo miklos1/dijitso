@@ -50,6 +50,7 @@ def discover_config_filename():
 
 _config_file_contents = None
 def read_config_file():
+    "Read config file and cache the contents for the duration of the process."
     global _config_file_contents
     if _config_file_contents is None:
         filename = discover_config_filename()
@@ -67,7 +68,7 @@ def read_config_file():
 
 def default_cache_params():
     p = dict(
-        root_dir="~/.cache/dijitso",
+        cache_dir="~/.cache/dijitso",
         inc_dir="include",
         src_dir="src",
         lib_dir="lib",

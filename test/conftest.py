@@ -100,12 +100,12 @@ def mygenerate(jitable, name, signature, generator_params):
     return header, source, dependencies
 
 
-def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"):
+def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=".dijitso"):
     "A mock jit routine setup to exercise much of the library."
 
     # Setup params
     cache_params = dict(
-        root_dir=dijitso_root_dir,
+        cache_dir=dijitso_cache_dir,
         src_storage="compress",
         )
     build_params = dict(
@@ -127,7 +127,7 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_root_dir=".dijitso"
     # Autodetect subcomms and role based on buildin option and physical disk access of processes
     from dijitso.mpi import create_comms_and_role, send_binary, receive_binary
     from dijitso.system import make_dirs
-    sync_dir = os.path.join(cache_params["root_dir"], "sync")
+    sync_dir = os.path.join(cache_params["cache_dir"], "sync")
     make_dirs(sync_dir)
     copy_comm, wait_comm, role = create_comms_and_role(comm, sync_dir, buildon)
 
