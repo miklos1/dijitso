@@ -32,18 +32,22 @@ def extract_files(signature, params, prefix="", path=os.curdir):
     path = os.path.join(path, "-".join((prefix, signature)))
     make_dirs(path)
 
-    lib_filename = create_lib_filename(signature, params["cache"])
-    src_filename = create_src_filename(signature, params["cache"])
-    inc_filename = create_inc_filename(signature, params["cache"])
-    log_filename = create_log_filename(signature, params["cache"])
+    cache_params = params["cache"]
+    src_filename = create_src_filename(signature, cache_params)
+    inc_filename = create_inc_filename(signature, cache_params)
+    log_filename = create_log_filename(signature, cache_params)
 
     try_copy_file(src_filename, path)
     try_copy_file(inc_filename, path)
     try_copy_file(log_filename, path)
 
+    #lib_filename = create_lib_filename(signature, cache_params)
+    lib_basename = create_lib_basename(signature, cache_params)
+    src_basename = os.path.basename(src_filename)
+
     from dijitso.build import make_compile_command
     cmd_filename = os.path.join(path, "compile_command")
-    cmd = make_compile_command(src_filename, lib_filename, params["build"], params["cache"])
+    cmd = make_compile_command(src_basename, lib_basename, params["build"], params["cache"])
     cmds = " ".join(cmd)
     store_textfile(cmd_filename, cmds)
 

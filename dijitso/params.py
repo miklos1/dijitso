@@ -79,7 +79,7 @@ def default_cache_params():
         log_postfix=".txt",
         inc_postfix=".h",
         lib_postfix=".so",
-        lib_prefix="libdijitso",
+        lib_prefix="libdijitso-",
         )
     return p
 
