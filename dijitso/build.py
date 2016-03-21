@@ -62,7 +62,12 @@ def make_compile_command(src_filename, lib_filename, build_params, cache_params)
     include_dirs = make_unique(build_params["include_dirs"] + (inc_dir,))
     lib_dirs = make_unique(build_params["lib_dirs"] + (lib_dir,))
     rpath_dirs = make_unique(build_params["rpath_dirs"] + (lib_dir,))
-    
+
+    # Make all paths absolute
+    include_dirs = [os.path.abspath(d) for d in include_dirs]
+    lib_dirs = [os.path.abspath(d) for d in lib_dirs]
+    rpath_dirs = [os.path.abspath(d) for d in rpath_dirs]
+
     # Add include dirs so compiler will find included headers
     args.extend("-I"+path for path in include_dirs)
 
@@ -90,7 +95,7 @@ def compile_library(src_filename, lib_filename, build_params, cache_params):
     """
     # Build final command string
     cmd = make_compile_command(src_filename, lib_filename, build_params, cache_params)
-    cmds = " ".join(cmd)
+    #cmds = " ".join(cmd)
 
     # Execute command
     status, output = get_status_output(cmd)
