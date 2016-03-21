@@ -20,12 +20,11 @@ from __future__ import unicode_literals
 
 import ctypes
 import os
+import numpy
 
 from dijitso.log import log, error
 from dijitso.params import validate_params
-from dijitso.cache import ensure_dirs
-from dijitso.cache import store_src, store_inc, store_log, compress_source_code
-from dijitso.cache import lookup_lib, load_library, extract_files
+from dijitso.cache import lookup_lib, load_library
 from dijitso.cache import write_library_binary, read_library_binary
 from dijitso.build import build_shared_library
 from dijitso.signatures import hash_params
@@ -150,46 +149,25 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
             # 1) Generate source code
             header, source, dependencies = generate(jitable, name, signature, params["generator"])
 
-            # 2) Store header and source code in dijitso include and src dirs
-            ensure_dirs(cache_params)
-            src_filename = store_src(signature, source, cache_params)
-            if header:
-                inc_filename = store_inc(signature, header, cache_params)
-            else:
-                inc_filename = None
-
-            # 3) Compile shared library and store in dijitso lib dir
+            # 2) Compile shared library and 3) store in dijitso inc/src/lib dir on success
             # NB! It's important to not raise exception on compilation failure,
             # such that we can reach wait() together with other processes if any.
             status, output, lib_filename = \
-                build_shared_library(signature, src_filename, dependencies, params)
-
-            # Locally compress or delete source code based on params,
-            # unless compilation failed in which case we keep it for
-            # debugging or other manual inspection
-            if status == 0:
-                compress_source_code(src_filename, cache_params)
-            else:
-                # Write compiler output to dijitso log dir
-                log_filename = store_log(signature, output, cache_params)
-
-                # Try to copy source code and log to current directory
-                fail_dir = extract_files(signature, params, prefix="jitfailure", path=os.curdir)
-                log("Compilation failed, source files and compiler output have been written to %s" % (fail_dir,))
+                build_shared_library(signature, header, source, dependencies, params)
 
             # 4a) Send library over network if we have a send function
             if send:
                 if status == 0:
                     lib_data = read_library_binary(lib_filename)
                 else:
-                    lib_data = numpy.zeros(())
+                    lib_data = numpy.zeros((1,))
                 send(lib_data)
 
         elif receive:
             # 4b) Get library as binary blob from given receive function and store in cache
             lib_data = receive()
             # Empty if compilation failed
-            status = 0 if lib_data.shape else -1
+            status = -1 if lib_data.shape == (1,) else 0
             if status == 0:
                 write_library_binary(lib_data, signature, cache_params)
 

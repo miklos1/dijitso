@@ -20,6 +20,7 @@
 from __future__ import print_function
 import pytest
 import shutil
+import os
 
 #@pytest.fixture(params=["node"])
 @pytest.fixture(params=["root", "node", "process"])
@@ -50,6 +51,7 @@ def test_mpi_jit_strategies(comm, jit_integer, buildon):
     elif buildon == "root":
         # Less dirs than processes (gives a combination of copying (size>1) and waiting (size>2))
         dijitso_cache_dir = ".test_dijitso_%d" % (comm.rank % 2,)
+    dijitso_cache_dir = os.path.join(os.path.dirname(__file__), dijitso_cache_dir)
 
     shutil.rmtree(dijitso_cache_dir, ignore_errors=True)
     comm.barrier()

@@ -41,43 +41,43 @@ def extract_files(signature, params, prefix="", path=os.curdir):
     try_copy_file(inc_filename, path)
     try_copy_file(log_filename, path)
 
-    #lib_filename = create_lib_filename(signature, cache_params)
-    lib_basename = create_lib_basename(signature, cache_params)
-    src_basename = os.path.basename(src_filename)
-
-    from dijitso.build import make_compile_command
-    cmd_filename = os.path.join(path, "compile_command")
-    cmd = make_compile_command(src_basename, lib_basename, params["build"], params["cache"])
-    cmds = " ".join(cmd)
-    store_textfile(cmd_filename, cmds)
-
     return path
 
 
+def _create_basename(foo, signature, cache_params):
+    return cache_params.get(foo+"_prefix", "") + signature + cache_params.get(foo+"_postfix","")
+
+def _create_filename(foo, signature, cache_params):
+    basename = _create_basename(foo, signature, cache_params)
+    return os.path.join(cache_params["cache_dir"], cache_params[foo+"_dir"], basename)
+
 def create_log_filename(signature, cache_params):
     "Create log filename based on signature and params."
-    basename = signature + cache_params["log_postfix"]
-    return os.path.join(cache_params["cache_dir"], cache_params["log_dir"], basename)
+    return _create_filename("log", signature, cache_params)
+
+def create_inc_basename(signature, cache_params):
+    "Create header filename based on signature and params."
+    return _create_basename("inc", signature, cache_params)
 
 def create_inc_filename(signature, cache_params):
     "Create header filename based on signature and params."
-    basename = signature + cache_params["inc_postfix"]
-    return os.path.join(cache_params["cache_dir"], cache_params["inc_dir"], basename)
+    return _create_filename("inc", signature, cache_params)
 
 def create_src_filename(signature, cache_params):
     "Create source code filename based on signature and params."
-    basename = signature + cache_params["src_postfix"]
-    return os.path.join(cache_params["cache_dir"], cache_params["src_dir"], basename)
+    return _create_filename("src", signature, cache_params)
+
+def create_src_basename(signature, cache_params):
+    "Create source code filename based on signature and params."
+    return _create_basename("src", signature, cache_params)
 
 def create_lib_basename(signature, cache_params):
     "Create library filename based on signature and params."
-    basename = cache_params["lib_prefix"] + signature + cache_params["lib_postfix"]
-    return basename
+    return _create_basename("lib", signature, cache_params)
 
 def create_lib_filename(signature, cache_params):
     "Create library filename based on signature and params."
-    basename = create_lib_basename(signature, cache_params)
-    return os.path.join(cache_params["cache_dir"], cache_params["lib_dir"], basename)
+    return _create_filename("lib", signature, cache_params)
 
 
 def make_inc_dir(cache_params):
@@ -100,15 +100,19 @@ def make_log_dir(cache_params):
     make_dirs(d)
     return d
 
-_ensure_dirs_called = False
+_ensure_dirs_called = {}
 def ensure_dirs(cache_params):
     global _ensure_dirs_called
-    if not _ensure_dirs_called:
+    # This ensures directories are created only once during a process
+    # for each value that cache_dir takes, in case it changes during
+    # the process lifetime.
+    c = cache_params["cache_dir"]
+    if c not in _ensure_dirs_called:
         make_inc_dir(cache_params)
         make_src_dir(cache_params)
         make_lib_dir(cache_params)
         make_log_dir(cache_params)
-        _ensure_dirs_called = True
+        _ensure_dirs_called[c] = True
 
 
 def read_library_binary(lib_filename):
@@ -223,11 +227,13 @@ def compress_source_code(src_filename, cache_params):
     """
     src_storage = cache_params["src_storage"]
     if src_storage == "keep":
-        pass
+        filename = src_filename
     elif src_storage == "delete":
         try_delete_file(src_filename)
+        filename = None
     elif src_storage == "compress":
-        gzip_file(src_filename)
+        filename = gzip_file(src_filename)
         try_delete_file(src_filename)
     else:
         error("Invalid src_storage parameter. Expecting 'keep', 'delete', or 'compress'.")
+    return filename

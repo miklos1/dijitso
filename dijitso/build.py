@@ -22,9 +22,14 @@ from __future__ import unicode_literals
 
 import tempfile
 import os
-from dijitso.system import get_status_output, lockfree_move_file
+from dijitso.system import get_status_output, lockfree_move_file, make_dirs
 from dijitso.log import log, error
-from dijitso.cache import create_lib_filename, create_lib_basename, make_lib_dir, make_inc_dir
+from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
+from dijitso.cache import create_lib_filename, create_lib_basename
+from dijitso.cache import create_src_filename, create_src_basename
+from dijitso.cache import create_inc_filename, create_inc_basename
+from dijitso.cache import ensure_dirs
+from dijitso.cache import compress_source_code, extract_files
 
 
 def make_unique(dirs):
@@ -36,7 +41,7 @@ def make_unique(dirs):
     return tuple(udirs)
 
 
-def make_compile_command(src_filename, lib_filename, build_params, cache_params):
+def make_compile_command(src_filename, lib_filename, dependencies, build_params, cache_params):
     """Piece together the compile command from build params.
 
     Returns the command as a list with the command and its arguments.
@@ -80,13 +85,17 @@ def make_compile_command(src_filename, lib_filename, build_params, cache_params)
     # Add source filename
     args.append(src_filename)
 
-    # Add libraries to search for
-    args.extend("-l"+lib for lib in build_params["libs"])
+    # Add dependencies to libraries to search for
+    deplibs = tuple(create_lib_filename(depsig, cache_params) for depsig in dependencies)
+    args.extend("-l"+lib for lib in deplibs)
 
+    # Add other external libraries to search for
+    args.extend("-l"+lib for lib in build_params["libs"])
+    
     return args
 
 
-def compile_library(src_filename, lib_filename, build_params, cache_params):
+def compile_library(src_filename, lib_filename, dependencies, build_params, cache_params):
     """Compile shared library from source file.
 
     Assumes source code resides in src_filename on disk.
@@ -94,7 +103,8 @@ def compile_library(src_filename, lib_filename, build_params, cache_params):
     to produce shared library in lib_filename.
     """
     # Build final command string
-    cmd = make_compile_command(src_filename, lib_filename, build_params, cache_params)
+    cmd = make_compile_command(src_filename, lib_filename, dependencies,
+                               build_params, cache_params)
     #cmds = " ".join(cmd)
 
     # Execute command
@@ -109,34 +119,81 @@ def temp_dir(build_params):
     return tempfile.mkdtemp()
 
 
-def build_shared_library(signature, src_filename, dependencies, params):
+def build_shared_library(signature, header, source, dependencies, params):
     """Build shared library from a source file and store library in cache."""
-    # Add dependencies to build libs list
     cache_params = params["cache"]
-    build_params = dict(params["build"])
-    if dependencies:
-        deplibs = tuple(create_lib_filename(depsig, cache_params) for depsig in dependencies)
-        build_params["libs"] = build_params["libs"] + deplibs
+    build_params = params["build"]
 
-    # Create a temp directory and target directory
-    make_lib_dir(cache_params)
-    tmpdir = temp_dir(build_params)
-
-    # Create filenames for library
+    # Create basenames
+    inc_basename = create_inc_basename(signature, cache_params)
+    src_basename = create_src_basename(signature, cache_params)
     lib_basename = create_lib_basename(signature, cache_params)
+
+    # Create a temp directory and filenames within it
+    tmpdir = temp_dir(build_params)
+    temp_inc_filename = os.path.join(tmpdir, inc_basename)
+    temp_src_filename = os.path.join(tmpdir, src_basename)
     temp_lib_filename = os.path.join(tmpdir, lib_basename)
-    lib_filename = create_lib_filename(signature, cache_params)
 
-    # Compile generated source code to dynamic library
-    status, output = compile_library(src_filename, temp_lib_filename, build_params, cache_params)
+    # Store source and header in temp dir
+    if header:
+        store_textfile(temp_inc_filename, header)
+    store_textfile(temp_src_filename, source)
 
-    # Failure to compile is usually a showstopper
+    # Build final command string
+    cmd = make_compile_command(temp_src_filename, temp_lib_filename, dependencies,
+                               build_params, cache_params)
+    #cmds = " ".join(cmd)
+
+    # Execute command to compile generated source code to dynamic library
+    status, output = get_status_output(cmd)
+
+
+    # Move files to cache on success or a local dir on failure
     if status == 0:
-        # Move compiled library to cache using safe lockfree move
-        if temp_lib_filename != lib_filename:
-            lockfree_move_file(temp_lib_filename, lib_filename)
+        # Create final filenames in cache dirs
+        ensure_dirs(cache_params)
+        inc_filename = create_inc_filename(signature, cache_params)
+        src_filename = create_src_filename(signature, cache_params)
+        lib_filename = create_lib_filename(signature, cache_params)
+        assert os.path.exists(os.path.dirname(inc_filename))
+        assert os.path.exists(os.path.dirname(src_filename))
+        assert os.path.exists(os.path.dirname(lib_filename))
+
+        # Move inc,src,lib files to cache using safe lockfree move
+        if header:
+            lockfree_move_file(temp_inc_filename, inc_filename)
+        lockfree_move_file(temp_src_filename, src_filename)
+        lockfree_move_file(temp_lib_filename, lib_filename)
+
+        # Compress or delete source code based on params
+        # TODO: Better to do this before moving to cache
+        compress_source_code(src_filename, cache_params)
+
     else:
-        lib_filename = None
+        # Create filenames in a local directory to store files for reproducing failure
+        fail_dir = os.path.abspath(os.path.join("jitfailure-" + signature))
+        make_dirs(fail_dir)
+        inc_filename = os.path.join(fail_dir, inc_basename)
+        src_filename = os.path.join(fail_dir, src_basename)
+        cmd_filename = os.path.join(fail_dir, "command")
+        log_filename = os.path.join(fail_dir, "error.log")
+        lib_filename = None  # This is returned below!
+
+        # Move inc,src files to fail_dir using safe lockfree move
+        if header:
+            lockfree_move_file(temp_inc_filename, inc_filename)
+        lockfree_move_file(temp_src_filename, src_filename)
+
+        # Write compile command to failure dir, adjusted to use local source file
+        cmd = make_compile_command(src_basename, lib_basename, dependencies,
+                                   build_params, cache_params)
+        cmds = " ".join(cmd)
+        store_textfile(cmd_filename, cmds)
+
+        # Write compiler output to failure dir
+        store_textfile(log_filename, output)
+
+        log("Compilation failed! Sources, command, and errors have been written to %s" % (fail_dir,))
 
     return status, output, lib_filename
-

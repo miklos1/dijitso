@@ -28,7 +28,7 @@ import gzip
 import shutil
 import uuid
 from glob import glob
-
+from dijitso.log import warning
 
 def make_dirs(path):
     """Creates a directory (tree).
@@ -147,7 +147,7 @@ def lockfree_move_file(src, dst):
         with open(dst) as f:
             d = f.read()
         if s != d:
-            raise RuntimeError("Destination file already exists but contents differ!\nsrc: %s\ndst: %s" % (src, dst))
+            warning("Not overwriting existing file with different contents:\nsrc: %s\ndst: %s" % (src, dst))
         else:
             try_delete_file(src)
         return

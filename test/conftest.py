@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import pytest
-import hashlib, os
+import hashlib
+import os
 import dijitso
 import ctypes
 from six import string_types
@@ -100,7 +101,9 @@ def mygenerate(jitable, name, signature, generator_params):
     return header, source, dependencies
 
 
-def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=".dijitso"):
+_default_dijitso_cache_dir = os.path.join(os.path.dirname(__file__), ".dijitso")
+_testincludes = os.path.join(os.path.dirname(__file__), "testincludes")
+def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=_default_dijitso_cache_dir):
     "A mock jit routine setup to exercise much of the library."
 
     # Setup params
@@ -110,7 +113,7 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=".dijitso
         )
     build_params = dict(
         debug=True,
-        include_dirs=("testincludes",),
+        include_dirs=(_testincludes,),
         )
     generator_params = None
     params = dict(
