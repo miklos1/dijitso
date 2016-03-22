@@ -63,11 +63,6 @@ def read_config_file():
                 _config_file_contents[category] = {}
                 for name, value in parser.items(category):
                     _config_file_contents[category][name] = value
-        # hack begin
-        c = os.environ.get("INSTANT_CACHE_DIR")
-        if c:
-            _config_file_contents["cache"]["cache_dir"] = os.path.join(c, "dijitso")
-        # hack end
     return _config_file_contents
 
 
@@ -224,5 +219,11 @@ def validate_params(params):
             elif isinstance(v0, tuple):
                 value = as_str_tuple(value)
             p[category][name] = value
+
+    # hack begin
+    c = os.environ.get("INSTANT_CACHE_DIR")
+    if c:
+        p["cache"]["cache_dir"] = os.path.join(c, "dijitso")
+    # hack end
 
     return p
