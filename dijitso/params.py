@@ -166,6 +166,8 @@ def copy_params(params):
 def check_params_keys(default, params):
     "Check that keys in params exist in defaults."
     for category in params:
+        if category == "generator":
+            continue
         if category not in default:
             error("Invalid parameter category '%s'." % category)
         if params[category] is not None:
@@ -206,6 +208,8 @@ def validate_params(params):
 
     # Convert parameter types
     for category in p:
+        if category == "generator":
+            continue
         for name, value in p[category].items():
             v0 = p0[category][name]
             if isinstance(v0, string_types):
