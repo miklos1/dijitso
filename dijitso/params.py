@@ -224,4 +224,10 @@ def validate_params(params):
                 value = as_str_tuple(value)
             p[category][name] = value
 
+    # hack begin
+    c = os.environ.get("INSTANT_CACHE_DIR")
+    if c:
+        p["cache"]["cache_dir"] = os.path.join(c, "dijitso")
+    # hack end
+
     return p
