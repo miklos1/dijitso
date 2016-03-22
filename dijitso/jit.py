@@ -134,7 +134,9 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
     params = validate_params(params)
 
     # 0) Look for library in memory or disk cache
-    signature = jit_signature(name, params)
+    # FIXME: use only name as signature for now
+    #signature = jit_signature(name, params)
+    signature = name
     cache_params = params["cache"]
     lib = lookup_lib(signature, cache_params)
 
