@@ -26,12 +26,18 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
 version = re.findall('__version__ = "(.*)"',
                      open('dijitso/__init__.py', 'r').read())[0]
 
+url = "https://bitbucket.org/fenics-project/dijitso/"
+tarball = None
+if not 'dev' in version:
+    tarball = url + "downloads/dijitso-%s.tar.gz" % version
+
 setup(name = "dijitso",
       version = version,
       description = "Distributed just-in-time building of shared libraries",
       author = "Martin Sandve Alnæs",
       author_email = "martinal@simula.no",
-      url = "http://www.fenicsproject.org",
+      url = url,
+      download_url = tarball,
       packages = ['dijitso'],
       package_dir = {'dijitso': 'dijitso'},
       scripts = scripts,
