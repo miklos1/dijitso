@@ -21,6 +21,6 @@ from __future__ import unicode_literals
 """This is dijitso -- a lightweight distributed just-in-time shared library builder."""
 
 __author__ = "Martin Sandve Alnæs"
-__version__ = "2016.1.0"
+__version__ = "2016.2.0.dev0"
 
 from .jit import *
