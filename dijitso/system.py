@@ -22,6 +22,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
+import subprocess
+import sys
 import errno
 import ctypes
 import gzip
@@ -29,6 +31,7 @@ import shutil
 import uuid
 from glob import glob
 from dijitso.log import warning
+
 
 def make_dirs(path):
     """Creates a directory (tree).
@@ -194,6 +197,27 @@ def lockfree_move_file(src, dst):
         raise RuntimeError("Destination file should exist at this point!")
 
 
-# TODO: Copy here to make configurable through dijitso params.
-#       Just letting it stay in instant for now.
-from instant import get_status_output
+# Copied in from Instant
+def get_status_output(cmd, input=None, cwd=None, env=None):
+    """Replacement for commands.getstatusoutput which does not work on
+Windows (or Python 3)"""
+    if isinstance(cmd, str):
+        cmd = cmd.strip().split()
+
+    # NOTE: This is not OFED-fork-safe! Check subprocess.py,
+    #       http://bugs.python.org/issue1336#msg146685
+    #       OFED-fork-safety means that parent should not
+    #       touch anything between fork() and exec(),
+    #       which is not met in subprocess module. See
+    #       https://www.open-mpi.org/faq/?category=openfabrics#ofa-fork
+    #       http://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.12_rc1_release_notes#3.03
+    pipe = subprocess.Popen(cmd, shell=False, cwd=cwd, env=env,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    (output, errout) = pipe.communicate(input=input)
+    assert not errout
+
+    status = pipe.returncode
+    output = output.decode('utf-8') if sys.version_info[0] > 2 else output
+
+    return (status, output)

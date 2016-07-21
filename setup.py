@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import sys, platform, re
@@ -20,7 +19,7 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     for script in scripts:
         batch_file = script + ".bat"
         with open(batch_file, "w") as f:
-            f.write('python "%%~dp0\%s" %%*\n' % split(script)[1])
+            f.write(sys.excecutable + ' "%%~dp0\%s" %%*\n' % split(script)[1])
         scripts.append(batch_file)
 
 version = re.findall('__version__ = "(.*)"',
