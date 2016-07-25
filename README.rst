@@ -1,11 +1,23 @@
 dijitso
 =======
+
 *A Python module for distributed just-in-time shared library building*
 
 Authors:
 
-    - Martin Sandve Alnæs (martinal@simula.no)
-    - Johannes Ring (johannr@simula.no)
+- Martin Sandve Alnæs (martinal@simula.no)
+- Johannes Ring (johannr@simula.no)
+
+
+Documentation
+-------------
+
+Documentation can be viewed at http://fenics-dijitso.readthedocs.org/.
+
+.. image:: https://readthedocs.org/projects/fenics-dijitso/badge/?version=latest
+   :target: http://fenics.readthedocs.io/projects/dijitso/en/latest/?badge=latest
+   :alt: Documentation Status
+
 
 Motivation
 ----------
@@ -28,41 +40,44 @@ is probably not the answer.
 Although dijitso serves a very specific role within the FEniCS
 project, it does not depend on other FEniCS components.
 
-The parallel support depends on the mpi4py interface, although
-mpi4py is not actually imported within the dijitso module so it
-would be possible to mock the communicator object with a similar interface.
+The parallel support depends on the mpi4py interface, although mpi4py
+is not actually imported within the dijitso module so it would be
+possible to mock the communicator object with a similar interface.
+
 
 Feature list
 ------------
 
-    - Disk cache system based on user provided signature string
-      (user is responsible of the quality of the signature)
+- Disk cache system based on user provided signature string (user is
+  responsible of the quality of the signature)
 
-    - Lazy evaluation of possibly costly code generation through
-      user-provided callback, called only if signature is not found in
-      disk cache
+- Lazy evaluation of possibly costly code generation through
+  user-provided callback, called only if signature is not found in
+  disk cache
 
-    - Low overhead invocation of C++ compiler to produce a shared
-      library with no Python wrapping
+- Low overhead invocation of C++ compiler to produce a shared library
+  with no Python wrapping
 
-    - Portable shared library import using ctypes
+- Portable shared library import using ctypes
 
-    - Automatic compression of source code in the cache directory saves space
+  - Automatic compression of source code in the cache directory saves
+    space
 
-    - Autodetect which MPI processes share the same physical cache
-      directory (doesn't matter if this is all cores on a node or
-      shared across nodes with network mapped storage)
+- Autodetect which MPI processes share the same physical cache
+  directory (doesn't matter if this is all cores on a node or shared
+  across nodes with network mapped storage)
 
-    - Automatic avoidance of race conditions in disk cache by
-      only compiling on one process per physical cache directory
+- Automatic avoidance of race conditions in disk cache by only
+  compiling on one process per physical cache directory
 
-    - Optional MPI based distribution of shared library binary file
+- Optional MPI based distribution of shared library binary file
 
-    - Configurable parallel behaviour:
+- Configurable parallel behaviour:
 
-        - "root": build only on single root node and distribute binary
-          to each physical cache directory with MPI
+  - "root": build only on single root node and distribute binary to
+    each physical cache directory with MPI
 
-        - "node": build on one process per physical cache directory
+  - "node": build on one process per physical cache directory
 
-        - "process": build on each process, automatic separation of cache directories
+  - "process": build on each process, automatic separation of cache
+    directories
