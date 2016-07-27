@@ -19,10 +19,9 @@
 from __future__ import unicode_literals
 
 import ctypes
-import os
 import numpy
 
-from dijitso.log import log, error
+from dijitso.log import error
 from dijitso.params import validate_params
 from dijitso.cache import lookup_lib, load_library
 from dijitso.cache import write_library_binary, read_library_binary
@@ -52,14 +51,16 @@ def jit_signature(name, params):
     signature_params = {
         "generator": params["generator"],
         "build": params["build"]
-        }
+    }
 
     signature = "%s_%s" % (name, hash_params(signature_params))
     return signature
 
 
-def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None):
-    """Just-in-time compile and import of a shared library with a cache mechanism.
+def jit(jitable, name, params, generate=None, send=None, receive=None,
+        wait=None):
+    """Just-in-time compile and import of a shared library with a cache
+mechanism.
 
     A signature is computed from the name, params["generator"],
     and params["build"]. The name should be a unique identifier
@@ -135,7 +136,7 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
 
     # 0) Look for library in memory or disk cache
     # FIXME: use only name as signature for now
-    #signature = jit_signature(name, params)
+    # signature = jit_signature(name, params)
     signature = name
     cache_params = params["cache"]
     lib = lookup_lib(signature, cache_params)
@@ -151,11 +152,14 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
             # 1) Generate source code
             header, source, dependencies = generate(jitable, name, signature, params["generator"])
 
-            # 2) Compile shared library and 3) store in dijitso inc/src/lib dir on success
-            # NB! It's important to not raise exception on compilation failure,
-            # such that we can reach wait() together with other processes if any.
+            # 2) Compile shared library and 3) store in dijitso
+            # inc/src/lib dir on success
+            # NB! It's important to not raise exception on compilation
+            # failure, such that we can reach wait() together with
+            # other processes if any.
             status, output, lib_filename = \
-                build_shared_library(signature, header, source, dependencies, params)
+                build_shared_library(signature, header, source, dependencies,
+                                     params)
 
             # 4a) Send library over network if we have a send function
             if send:
@@ -166,7 +170,8 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
                 send(lib_data)
 
         elif receive:
-            # 4b) Get library as binary blob from given receive function and store in cache
+            # 4b) Get library as binary blob from given receive
+            # function and store in cache
             lib_data = receive()
             # Empty if compilation failed
             status = -1 if lib_data.shape == (1,) else 0
@@ -174,15 +179,18 @@ def jit(jitable, name, params, generate=None, send=None, receive=None, wait=None
                 write_library_binary(lib_data, signature, cache_params)
 
         else:
-            # Do nothing (we'll be waiting below for other process to build)
+            # Do nothing (we'll be waiting below for other process to
+            # build)
             if not wait:
                 error("Please provide wait if not providing one of generate or receive.")
 
-        # 5) Notify waiters that we're done / wait for builder to notify us
+        # 5) Notify waiters that we're done / wait for builder to
+        # notify us
         if wait:
             wait()
 
-        # Finally load library from disk cache (places in memory cache)
+        # Finally load library from disk cache (places in memory
+        # cache)
         # NB! This returns None if the file does not exist,
         # i.e. if compilation failed on builder process
         lib = load_library(signature, cache_params)

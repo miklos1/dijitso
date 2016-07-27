@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
-"""This is dijitso -- a lightweight distributed just-in-time shared library builder."""
+"""This is dijitso -- a lightweight distributed just-in-time shared
+library builder."""
 
 __author__ = "Martin Sandve Alnæs"
 __version__ = "2016.2.0.dev0"
 
+from __future__ import unicode_literals
 from .jit import *

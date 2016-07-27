@@ -25,7 +25,6 @@ import os
 import subprocess
 import sys
 import errno
-import ctypes
 import gzip
 import shutil
 import uuid

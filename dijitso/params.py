@@ -37,7 +37,7 @@ def discover_config_filename():
         os.environ.get("DIJITSO_CONF"),
         os.path.expanduser("~"),
         "/etc/dijitso",
-        ]
+    ]
     for path in search_paths:
         if path is None:
             continue
@@ -49,6 +49,8 @@ def discover_config_filename():
 
 
 _config_file_contents = None
+
+
 def read_config_file():
     "Read config file and cache the contents for the duration of the process."
     global _config_file_contents
@@ -79,8 +81,7 @@ def default_cache_params():
         log_postfix=".txt",
         inc_postfix=".h",
         lib_postfix=".so",
-        lib_prefix="libdijitso-",
-        )
+        lib_prefix="libdijitso-", )
     return p
 
 
@@ -93,11 +94,13 @@ def default_cxx_debug_flags():
 
 
 def default_cxx_release_flags():
-    # These flags deal with handling of nan, inf, underflow, division by zero, etc.
-    # which should be ok for most of our purposes. It might be better to place them
-    # in ffc or make them dependent on compiler or optional or whatever, just throwing
-    # them in here now to see how it works out.
-    safe_fastmath_parts = ("-fno-math-errno", "-fno-trapping-math", "-ffinite-math-only")
+    # These flags deal with handling of nan, inf, underflow, division
+    # by zero, etc.  which should be ok for most of our purposes. It
+    # might be better to place them in ffc or make them dependent on
+    # compiler or optional or whatever, just throwing them in here now
+    # to see how it works out.
+    safe_fastmath_parts = ("-fno-math-errno", "-fno-trapping-math",
+                           "-ffinite-math-only")
     return ("-O3",) + safe_fastmath_parts
 
 
@@ -111,8 +114,7 @@ def default_build_params():
         lib_dirs=(),
         rpath_dirs=(),
         libs=(),
-        debug=False,
-        )
+        debug=False,)
     return p
 
 
@@ -124,12 +126,13 @@ def default_params():
     p = dict(
         cache=default_cache_params(),
         build=default_build_params(),
-        generator=default_generator_params(),
-        )
+        generator=default_generator_params(),)
     return p
 
 
 _session_defaults = None
+
+
 def session_default_params():
     global _session_defaults
     if _session_defaults is None:
@@ -149,7 +152,8 @@ def as_bool(value):
 
 
 def as_str_tuple(p):
-    """Convert p to a tuple of strings, allowing a list or tuple of strings or a single string as input."""
+    """Convert p to a tuple of strings, allowing a list or tuple of
+strings or a single string as input."""
     if isinstance(p, string_types):
         return (p,)
     elif isinstance(p, (tuple, list)):
@@ -160,7 +164,7 @@ def as_str_tuple(p):
 
 def copy_params(params):
     "Copy two-level dict of params."
-    return {k:v.copy() for k,v in params.items()}
+    return {k: v.copy() for k, v in params.items()}
 
 
 def check_params_keys(default, params):
@@ -213,7 +217,8 @@ def validate_params(params):
         for name, value in p[category].items():
             v0 = p0[category][name]
             if isinstance(v0, string_types):
-                # Expand paths including "~" to include full user home directory path
+                # Expand paths including "~" to include full user home
+                # directory path
                 if name.endswith("_dir") and "~" in value:
                     value = os.path.expanduser(value)
             elif isinstance(v0, bool):

@@ -21,9 +21,6 @@ from __future__ import unicode_literals
 from six import string_types
 import hashlib
 
-from dijitso.log import log, error
-
-
 # Arbitrarily chosen hash digest cutoff to keep filename lengths
 # reasonably small. If this is too short hashes will collide!
 HASHLENGTH = 12

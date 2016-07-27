@@ -18,11 +18,13 @@
 
 """This is the commands executed from the commandline interface to dijitso.
 
-Each function cmd_<cmdname> becomes a subcommand invoked by 'dijitso cmdname ...args'.
+Each function cmd_<cmdname> becomes a subcommand invoked by 'dijitso
+cmdname ...args'.
 
 The docstrings in the cmd_<cmdname> are shown on 'dijitso cmdname --help'.
 
 The 'args' argument to cmd_* is a Namespace object with the commandline arguments.
+
 """
 
 from __future__ import unicode_literals
@@ -38,6 +40,7 @@ dijitso rm signature.so
 dijitso add signature.cpp
 dijitso build signature.cpp
 """
+
 
 def cmd_config(args, params):
     "show configuration"

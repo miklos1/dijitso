@@ -23,8 +23,9 @@ from __future__ import unicode_literals
 import uuid
 import os
 import ctypes
-from dijitso.system import make_dirs, try_delete_file, try_copy_file, gzip_file, read_file, lockfree_move_file
-from dijitso.log import log, warning, error
+from dijitso.system import (make_dirs, try_delete_file, try_copy_file,
+                            gzip_file, read_file, lockfree_move_file)
+from dijitso.log import error
 
 
 def extract_files(signature, params, prefix="", path=os.curdir):
@@ -45,35 +46,44 @@ def extract_files(signature, params, prefix="", path=os.curdir):
 
 
 def _create_basename(foo, signature, cache_params):
-    return cache_params.get(foo+"_prefix", "") + signature + cache_params.get(foo+"_postfix","")
+    return cache_params.get(foo + "_prefix", "") + signature + cache_params.get(foo+"_postfix", "")
+
 
 def _create_filename(foo, signature, cache_params):
     basename = _create_basename(foo, signature, cache_params)
-    return os.path.join(cache_params["cache_dir"], cache_params[foo+"_dir"], basename)
+    return os.path.join(cache_params["cache_dir"],
+                        cache_params[foo+"_dir"], basename)
+
 
 def create_log_filename(signature, cache_params):
     "Create log filename based on signature and params."
     return _create_filename("log", signature, cache_params)
 
+
 def create_inc_basename(signature, cache_params):
     "Create header filename based on signature and params."
     return _create_basename("inc", signature, cache_params)
+
 
 def create_inc_filename(signature, cache_params):
     "Create header filename based on signature and params."
     return _create_filename("inc", signature, cache_params)
 
+
 def create_src_filename(signature, cache_params):
     "Create source code filename based on signature and params."
     return _create_filename("src", signature, cache_params)
+
 
 def create_src_basename(signature, cache_params):
     "Create source code filename based on signature and params."
     return _create_basename("src", signature, cache_params)
 
+
 def create_lib_basename(signature, cache_params):
     "Create library filename based on signature and params."
     return _create_basename("lib", signature, cache_params)
+
 
 def create_lib_filename(signature, cache_params):
     "Create library filename based on signature and params."
@@ -85,22 +95,28 @@ def make_inc_dir(cache_params):
     make_dirs(d)
     return d
 
+
 def make_src_dir(cache_params):
     d = os.path.join(cache_params["cache_dir"], cache_params["src_dir"])
     make_dirs(d)
     return d
+
 
 def make_lib_dir(cache_params):
     d = os.path.join(cache_params["cache_dir"], cache_params["lib_dir"])
     make_dirs(d)
     return d
 
+
 def make_log_dir(cache_params):
     d = os.path.join(cache_params["cache_dir"], cache_params["log_dir"])
     make_dirs(d)
     return d
 
+
 _ensure_dirs_called = {}
+
+
 def ensure_dirs(cache_params):
     global _ensure_dirs_called
     # This ensures directories are created only once during a process
@@ -119,6 +135,7 @@ def read_library_binary(lib_filename):
     "Read compiled shared library as binary blob into a numpy byte array."
     import numpy
     return numpy.fromfile(lib_filename, dtype=numpy.uint8)
+
 
 def write_library_binary(lib_data, signature, cache_params):
     "Store compiled shared library from binary blob in numpy byte array to cache."
@@ -140,20 +157,23 @@ def load_library(signature, cache_params):
         return None
     try:
         lib = ctypes.cdll.LoadLibrary(lib_filename)
-    except os.error as e:
+    except os.error:
         error("Failed to load library %s." % (lib_filename,))
 
     if lib is not None:
-        # Disk loading succeeded, register loaded library in memory cache for next time
+        # Disk loading succeeded, register loaded library in memory
+        # cache for next time
         _lib_cache[signature] = lib
     return lib
 
 
-# A cache is always something to be careful about.
-# This one stores references to loaded jit-compiled libraries,
-# which will stay in memory unless manually unloaded anyway
-# and should not cause any trouble.
+# A cache is always something to be careful about.  This one stores
+# references to loaded jit-compiled libraries, which will stay in
+# memory unless manually unloaded anyway and should not cause any
+# trouble.
 _lib_cache = {}
+
+
 def lookup_lib(lib_signature, cache_params):
     """Lookup library in memory cache then in disk cache.
 
@@ -173,10 +193,12 @@ def read_src(signature, cache_params):
     filename = create_src_filename(signature, cache_params)
     return read_file(filename)
 
+
 def read_inc(signature, cache_params):
     """Lookup header file in disk cache and return file contents or None."""
     filename = create_inc_filename(signature, cache_params)
     return read_file(filename)
+
 
 def read_log(signature, cache_params):
     """Lookup log file in disk cache and return file contents or None."""
@@ -198,6 +220,7 @@ def store_textfile(filename, content):
 
     return filename
 
+
 def store_src(signature, content, cache_params):
     "Store source code in file within dijitso directories."
     make_src_dir(cache_params)
@@ -205,12 +228,14 @@ def store_src(signature, content, cache_params):
     store_textfile(filename, content)
     return filename
 
+
 def store_inc(signature, content, cache_params):
     "Store header file within dijitso directories."
     make_inc_dir(cache_params)
     filename = create_inc_filename(signature, cache_params)
     store_textfile(filename, content)
     return filename
+
 
 def store_log(signature, content, cache_params):
     "Store log file within dijitso directories."

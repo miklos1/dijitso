@@ -23,13 +23,13 @@ from __future__ import unicode_literals
 import tempfile
 import os
 from dijitso.system import get_status_output, lockfree_move_file, make_dirs
-from dijitso.log import log, error
+from dijitso.log import log
 from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
 from dijitso.cache import create_lib_filename, create_lib_basename
 from dijitso.cache import create_src_filename, create_src_basename
 from dijitso.cache import create_inc_filename, create_inc_basename
 from dijitso.cache import ensure_dirs
-from dijitso.cache import compress_source_code, extract_files
+from dijitso.cache import compress_source_code
 
 
 def make_unique(dirs):
@@ -41,7 +41,8 @@ def make_unique(dirs):
     return tuple(udirs)
 
 
-def make_compile_command(src_filename, lib_filename, dependencies, build_params, cache_params):
+def make_compile_command(src_filename, lib_filename, dependencies,
+                         build_params, cache_params):
     """Piece together the compile command from build params.
 
     Returns the command as a list with the command and its arguments.
@@ -91,11 +92,12 @@ def make_compile_command(src_filename, lib_filename, dependencies, build_params,
 
     # Add other external libraries to search for
     args.extend("-l"+lib for lib in build_params["libs"])
-    
+
     return args
 
 
-def compile_library(src_filename, lib_filename, dependencies, build_params, cache_params):
+def compile_library(src_filename, lib_filename, dependencies, build_params,
+                    cache_params):
     """Compile shared library from source file.
 
     Assumes source code resides in src_filename on disk.
@@ -105,7 +107,7 @@ def compile_library(src_filename, lib_filename, dependencies, build_params, cach
     # Build final command string
     cmd = make_compile_command(src_filename, lib_filename, dependencies,
                                build_params, cache_params)
-    #cmds = " ".join(cmd)
+    # cmds = " ".join(cmd)
 
     # Execute command
     status, output = get_status_output(cmd)
@@ -141,13 +143,13 @@ def build_shared_library(signature, header, source, dependencies, params):
     store_textfile(temp_src_filename, source)
 
     # Build final command string
-    cmd = make_compile_command(temp_src_filename, temp_lib_filename, dependencies,
-                               build_params, cache_params)
-    #cmds = " ".join(cmd)
+    cmd = make_compile_command(temp_src_filename, temp_lib_filename,
+                               dependencies, build_params, cache_params)
+    # cmds = " ".join(cmd)
 
-    # Execute command to compile generated source code to dynamic library
+    # Execute command to compile generated source code to dynamic
+    # library
     status, output = get_status_output(cmd)
-
 
     # Move files to cache on success or a local dir on failure
     if status == 0:
@@ -171,7 +173,8 @@ def build_shared_library(signature, header, source, dependencies, params):
         compress_source_code(src_filename, cache_params)
 
     else:
-        # Create filenames in a local directory to store files for reproducing failure
+        # Create filenames in a local directory to store files for
+        # reproducing failure
         fail_dir = os.path.abspath(os.path.join("jitfailure-" + signature))
         make_dirs(fail_dir)
         inc_filename = os.path.join(fail_dir, inc_basename)
@@ -185,7 +188,8 @@ def build_shared_library(signature, header, source, dependencies, params):
             lockfree_move_file(temp_inc_filename, inc_filename)
         lockfree_move_file(temp_src_filename, src_filename)
 
-        # Write compile command to failure dir, adjusted to use local source file
+        # Write compile command to failure dir, adjusted to use local
+        # source file
         cmd = make_compile_command(src_basename, lib_basename, dependencies,
                                    build_params, cache_params)
         cmds = " ".join(cmd)

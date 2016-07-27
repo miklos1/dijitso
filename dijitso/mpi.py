@@ -19,16 +19,12 @@
 """Utilities for mpi features of dijitso."""
 
 from __future__ import unicode_literals
-
-from six import string_types
-
 import os
 import uuid
 from glob import glob
 
 import numpy
 
-from dijitso.cache import make_lib_dir
 from dijitso.log import log, error
 from dijitso.system import try_delete_file
 
@@ -38,7 +34,7 @@ def bcast_uuid(comm):
     guid = numpy.ndarray((1,), dtype=numpy.uint64)
     if comm.rank == 0:
         # uuid creates a unique 128 bit id, we just pick the low 64 bits
-        guid[0] = numpy.uint64(uuid.uuid4().int & ((1<<64)-1))
+        guid[0] = numpy.uint64(uuid.uuid4().int & ((1 << 64) - 1))
     comm.Bcast(guid, root=0)
     return int(guid[0])
 
@@ -63,7 +59,7 @@ def discover_path_access_ranks(comm, path):
     written.
     """
     # Create a unique basename for rank files of this program
-    guid = bcast_uuid(comm) # TODO: Run this in an init function and store for program duration?
+    guid = bcast_uuid(comm)  # TODO: Run this in an init function and store for program duration?
     basename = os.path.join(path, "rank.%d." % guid)
 
     # Write the rank of this process to a filename
@@ -71,7 +67,8 @@ def discover_path_access_ranks(comm, path):
     with open(filename, "w") as f:
         f.write("")
 
-    # Wait for all writes to take place. Don't know how robust this is with nfs!!!
+    # Wait for all writes to take place. Don't know how robust this is
+    # with nfs!!!
     comm.Barrier()
 
     # Read filelist
@@ -183,18 +180,24 @@ def create_comms_and_role(comm, comm_dir, buildon):
     Returns (copy_comm, wait_comm, role).
     """
     # Now assign values to the copy_comm, wait_comm, and role,
-    # depending on buildon strategy chosen.
-    # If we have no comm, always return the builder role
+    # depending on buildon strategy chosen.  If we have no comm,
+    # always return the builder role
     if comm is None:
         copy_comm, wait_comm, role = None, None, "builder"
     else:
         node_comm, node_root = create_node_comm(comm, comm_dir)
         if buildon == "root":
-            copy_comm, wait_comm, role = create_comms_and_role_root(comm, node_comm, node_root)
+            copy_comm, wait_comm, role = create_comms_and_role_root(comm,
+                                                                    node_comm,
+                                                                    node_root)
         elif buildon == "node":
-            copy_comm, wait_comm, role = create_comms_and_role_node(comm, node_comm, node_root)
+            copy_comm, wait_comm, role = create_comms_and_role_node(comm,
+                                                                    node_comm,
+                                                                    node_root)
         elif buildon == "process":
-            copy_comm, wait_comm, role = create_comms_and_role_process(comm, node_comm, node_root)
+            copy_comm, wait_comm, role = create_comms_and_role_process(comm,
+                                                                       node_comm,
+                                                                       node_root)
         else:
             error("Invalid parameter buildon=%s" % (buildon,))
     return copy_comm, wait_comm, role
@@ -238,9 +241,10 @@ def receive_binary(comm):
 
     return lib_data
 
-
+"""
 def foo():
-    # TODO: Should call these once (for each comm at least) globally in dolfin, not on each jit call
+    # TODO: Should call these once (for each comm at least) globally
+    # in dolfin, not on each jit call
 
     def get_comm_dir(cache_params):
         return os.path.join(cache_params["cache_dir"], cache_params["comm_dir"])
@@ -262,3 +266,4 @@ def foo():
 
     def receive():
         return receive_binary(copy_comm)
+"""

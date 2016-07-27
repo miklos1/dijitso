@@ -20,11 +20,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 
-def log(msg): # TODO: Replace with proper logging
+def log(msg):  # TODO: Replace with proper logging
     print(msg)
 
 
-def warning(msg): # TODO: Replace with proper logging
+def warning(msg):  # TODO: Replace with proper logging
     print(msg)
 
 
