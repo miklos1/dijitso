@@ -25,7 +25,8 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
         scripts.append(batch_file)
 
 version = re.findall('__version__ = "(.*)"',
-                     open('dijitso/__init__.py', 'r').read())[0]
+                     open('dijitso/__init__.py', 'r',
+                          encoding='utf-8').read())[0]
 
 url = "https://bitbucket.org/fenics-project/dijitso/"
 tarball = None
