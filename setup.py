@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 import sys
 import platform
+import codecs
 import re
 from os.path import join, split
 from distutils.core import setup
@@ -25,8 +27,8 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
         scripts.append(batch_file)
 
 version = re.findall('__version__ = "(.*)"',
-                     open('dijitso/__init__.py', 'r',
-                          encoding='utf-8').read())[0]
+                     codecs.open('dijitso/__init__.py', 'r',
+                                 encoding='utf-8').read())[0]
 
 url = "https://bitbucket.org/fenics-project/dijitso/"
 tarball = None
