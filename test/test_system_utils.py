@@ -20,7 +20,7 @@ def test_lockfree_move_file():
 
     # fixed destination
     dst = os.path.join(tmpdir, "test_lockfree_move_file.dst")
-    # try_delete_file(dst)  # can't do this when testing with mpi!
+    # try_delete_file(dst)   # can't do this when testing with mpi!
 
     for src in srcs:
         with open(src, "w") as f:
