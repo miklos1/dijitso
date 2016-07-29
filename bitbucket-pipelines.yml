@@ -5,10 +5,11 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get install -y python-minimal python-pip python-pytest python-setuptools python-wheel --no-install-recommends
-          - apt-get install -y python3-minimal python3-pip python3-pytest python3-setuptools python3-wheel --no-install-recommends
+          - apt-get install -y python-flake8 python-minimal python-pip python-pytest python-setuptools python-wheel --no-install-recommends
+          - apt-get install -y python3-flake8 python3-minimal python3-pip python3-pytest python3-setuptools python3-wheel --no-install-recommends
           - pip install .
           - pip3 install .
-          - cd test/
-          - py.test -v .
-          - py.test-3 -v .
+          - py.test -v test/
+          - py.test-3 -v test/
+          - python -m flake8 .
+          - python3 -m flake8 .

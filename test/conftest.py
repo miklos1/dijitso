@@ -1,12 +1,13 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import pytest
-import hashlib
 import os
 import dijitso
 import ctypes
 from six import string_types
+
 
 @pytest.fixture()
 def comm():
@@ -86,7 +87,7 @@ def mygenerate(jitable, name, signature, generator_params):
         classname="class_%s" % (jitable,),
         interfacename="external_interface",
         testvalue=jitable,
-        )
+    )
     parts = [
         _code_template_params % code_parts,
         _code_template_defines % code_parts,
@@ -94,7 +95,7 @@ def mygenerate(jitable, name, signature, generator_params):
         _code_template_class % code_parts,
         _code_template_factory % code_parts,
         _code_template_testhook % code_parts,
-        ]
+    ]
     header = "// Dummy header"
     source = '\n'.join(parts)
     dependencies = ()
@@ -103,31 +104,35 @@ def mygenerate(jitable, name, signature, generator_params):
 
 _default_dijitso_cache_dir = os.path.join(os.path.dirname(__file__), ".dijitso")
 _testincludes = os.path.join(os.path.dirname(__file__), "testincludes")
-def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=_default_dijitso_cache_dir):
+
+
+def _jit_integer(jitable, comm=None, buildon="node",
+                 dijitso_cache_dir=_default_dijitso_cache_dir):
     "A mock jit routine setup to exercise much of the library."
 
     # Setup params
     cache_params = dict(
         cache_dir=dijitso_cache_dir,
         src_storage="compress",
-        )
+    )
     build_params = dict(
         debug=True,
         include_dirs=(_testincludes,),
-        )
+    )
     generator_params = None
     params = dict(
         cache=cache_params,
         build=build_params,
         generator=generator_params,
-        )
+    )
     params = dijitso.validate_params(params)
 
     # Compute a name
     from dijitso.signatures import hashit
     name = "jit_integer_" + hashit(jitable)
 
-    # Autodetect subcomms and role based on buildin option and physical disk access of processes
+    # Autodetect subcomms and role based on buildin option and
+    # physical disk access of processes
     from dijitso.mpi import create_comms_and_role, send_binary, receive_binary
     from dijitso.system import make_dirs
     sync_dir = os.path.join(cache_params["cache_dir"], "sync")
@@ -147,6 +152,7 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=_default_
     elif role == "receiver":
         generate = None
         assert copy_comm is not None
+
         def receive():
             return receive_binary(copy_comm)
     elif role == "waiter":
@@ -172,6 +178,7 @@ def _jit_integer(jitable, comm=None, buildon="node", dijitso_cache_dir=_default_
 
     # Return both library and factory
     return lib, factory, get_test_value
+
 
 @pytest.fixture()
 def jit_integer():
