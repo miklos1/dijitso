@@ -6,7 +6,11 @@ import platform
 import codecs
 import re
 from os.path import join, split
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
 
 if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
@@ -45,5 +49,6 @@ setup(name="dijitso",
       packages=['dijitso'],
       package_dir={'dijitso': 'dijitso'},
       scripts=scripts,
+      install_requires = ["numpy", "six"],
       # data_files = [(join("share", "man", "man1"), man1)]
       )
