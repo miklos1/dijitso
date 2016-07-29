@@ -45,7 +45,7 @@ def canonicalize_params_for_hashing(params):
             k = k.encode('utf-8')
             v = params[k]
             if isinstance(v, dict):
-                items.append((k, canonicalize_params(v)))
+                items.append((k, canonicalize_params_for_hashing(v)))
             else:
                 items.append((k, repr(v).encode('utf-8')))
         data = tuple(items)
