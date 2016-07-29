@@ -49,6 +49,6 @@ setup(name="dijitso",
       packages=['dijitso'],
       package_dir={'dijitso': 'dijitso'},
       scripts=scripts,
-      install_requires = ["numpy", "six"],
+      install_requires=["numpy", "six"],
       # data_files = [(join("share", "man", "man1"), man1)]
       )
