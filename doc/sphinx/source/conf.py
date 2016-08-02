@@ -15,8 +15,8 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
+
+import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
@@ -426,3 +426,22 @@ epub_exclude_files = ['search.html']
 # If false, no index is generated.
 #
 # epub_use_index = True
+
+
+def run_apidoc(_):
+    modules = ['dijitso']
+
+    # Get location of Sphinx files
+    sphinx_source_dir = os.path.abspath(os.path.dirname(__file__))
+    repo_dir = os.path.abspath(os.path.join(sphinx_source_dir, os.path.pardir,
+                                            os.path.pardir, os.path.pardir))
+    apidoc_dir = os.path.join(sphinx_source_dir, "api-doc")
+
+    from sphinx.apidoc import main
+    for module in modules:
+        # Generate .rst files ready for autodoc
+        module_dir = os.path.join(repo_dir, module)
+        main(["-f", "-d", "1", "-o", apidoc_dir, module_dir])
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)
