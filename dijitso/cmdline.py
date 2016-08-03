@@ -16,12 +16,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
-"""This is the commands executed from the commandline interface to dijitso.
+"""This file contains the commands available through command-line dijitso-cache.
 
-Each function cmd_<cmdname> becomes a subcommand invoked by 'dijitso
-cmdname ...args'.
+Each function cmd_<cmdname> becomes a subcommand invoked by::
 
-The docstrings in the cmd_<cmdname> are shown on 'dijitso cmdname --help'.
+    dijitso-cache cmdname ...args
+
+The docstrings in the cmd_<cmdname> are shown when running::
+
+    dijitso-cache cmdname --help
 
 The 'args' argument to cmd_* is a Namespace object with the commandline arguments.
 
@@ -34,11 +37,11 @@ from dijitso.params import validate_params
 
 """Use cases:
 
-dijitso cp <signature>
+dijitso-cache cp <signature>
 <edit signature.cpp file, e.g. inserting debugging statements>
-dijitso rm signature.so
-dijitso add signature.cpp
-dijitso build signature.cpp
+dijitso-cache c rm signature.so
+dijitso-cache c add signature.cpp
+dijitso-cache c build signature.cpp
 """
 
 

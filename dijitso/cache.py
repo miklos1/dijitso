@@ -29,7 +29,10 @@ from dijitso.log import error
 
 
 def extract_files(signature, params, prefix="", path=os.curdir):
-    "Extract files stored under this signature to '<path>/<prefix>-<signature>.*'"
+    """Make a copy of files stored under this signature.
+
+    Target filenames are '<path>/<prefix>-<signature>.*'
+    """
     path = os.path.join(path, "-".join((prefix, signature)))
     make_dirs(path)
 
@@ -46,13 +49,13 @@ def extract_files(signature, params, prefix="", path=os.curdir):
 
 
 def _create_basename(foo, signature, cache_params):
-    return cache_params.get(foo + "_prefix", "") + signature + cache_params.get(foo+"_postfix", "")
+    return cache_params.get(foo + "_prefix", "") + signature + cache_params.get(foo + "_postfix", "")
 
 
 def _create_filename(foo, signature, cache_params):
     basename = _create_basename(foo, signature, cache_params)
     return os.path.join(cache_params["cache_dir"],
-                        cache_params[foo+"_dir"], basename)
+                        cache_params[foo + "_dir"], basename)
 
 
 def create_log_filename(signature, cache_params):

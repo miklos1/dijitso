@@ -75,23 +75,24 @@ def make_compile_command(src_filename, lib_filename, dependencies,
     rpath_dirs = [os.path.abspath(d) for d in rpath_dirs]
 
     # Add include dirs so compiler will find included headers
-    args.extend("-I"+path for path in include_dirs)
+    args.extend("-I" + path for path in include_dirs)
 
     # Add library dirs so linker will find libraries
-    args.extend("-L"+path for path in lib_dirs)
+    args.extend("-L" + path for path in lib_dirs)
 
     # Add library dirs so runtime loader will find libraries
-    args.extend("-Wl,-rpath,"+path for path in rpath_dirs)
+    args.extend("-Wl,-rpath," + path for path in rpath_dirs)
 
     # Add source filename
     args.append(src_filename)
 
     # Add dependencies to libraries to search for
-    deplibs = tuple(create_lib_filename(depsig, cache_params) for depsig in dependencies)
-    args.extend("-l"+lib for lib in deplibs)
+    deplibs = tuple(create_lib_filename(depsig, cache_params)
+                    for depsig in dependencies)
+    args.extend("-l" + lib for lib in deplibs)
 
     # Add other external libraries to search for
-    args.extend("-l"+lib for lib in build_params["libs"])
+    args.extend("-l" + lib for lib in build_params["libs"])
 
     return args
 
@@ -198,6 +199,7 @@ def build_shared_library(signature, header, source, dependencies, params):
         # Write compiler output to failure dir
         store_textfile(log_filename, output)
 
-        log("Compilation failed! Sources, command, and errors have been written to %s" % (fail_dir,))
+        log("Compilation failed! Sources, command, and "
+            "errors have been written to: %s" % (fail_dir,))
 
     return status, output, lib_filename

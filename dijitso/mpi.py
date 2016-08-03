@@ -72,7 +72,7 @@ def discover_path_access_ranks(comm, path):
     comm.Barrier()
 
     # Read filelist
-    noderanks = sorted([int(fn.replace(basename, "")) for fn in glob(basename+"*")])
+    noderanks = sorted([int(fn.replace(basename, "")) for fn in glob(basename + "*")])
 
     # Wait for everyone to finish reading filelist
     comm.Barrier()

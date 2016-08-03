@@ -24,4 +24,8 @@ library builder."""
 __author__ = "Martin Sandve Alnæs"
 __version__ = "2016.2.0.dev0"
 
-from .jit import *
+__all__ = ["validate_params", "jit", "extract_factory_function"]
+
+from dijitso.params import validate_params
+from dijitso.jit import jit
+from dijitso.jit import extract_factory_function
