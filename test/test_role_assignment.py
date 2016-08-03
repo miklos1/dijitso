@@ -41,7 +41,7 @@ def test_role_root(comm, lib_dir2):
 
     if role != "waiter":
         assert copy_comm.size == min(comm.size, 2)
-    assert (comm.size//2) <= wait_comm.size <= (comm.size//2+1)
+    assert (comm.size // 2) <= wait_comm.size <= (comm.size // 2 + 1)
 
 
 def test_role_node(comm, lib_dir2):
@@ -59,7 +59,7 @@ def test_role_node(comm, lib_dir2):
     assert copy_comm is None
     assert wait_comm is not None
 
-    assert (comm.size//2) <= wait_comm.size <= (comm.size//2+1)
+    assert (comm.size // 2) <= wait_comm.size <= (comm.size // 2 + 1)
 
 
 def test_role_process(comm, lib_dir0):
