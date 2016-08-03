@@ -10,4 +10,5 @@ __pycache__
 build/
 test/.cache/
 test/.dijitso/
+test/.test_*
 doc/sphinx/source/api-doc

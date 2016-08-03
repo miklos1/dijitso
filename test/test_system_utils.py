@@ -1,6 +1,6 @@
 import os
 import uuid
-from dijitso.system import lockfree_move_file
+from dijitso.system import lockfree_move_file, make_dirs
 
 
 def test_get_status_output():
@@ -10,7 +10,10 @@ def test_get_status_output():
 def test_lockfree_move_file():
     # Running this loop in multiple processes with mpi is perhaps a
     # decent test?
-    tmpdir = "."
+
+    # Fixed directory independent of mpi rank
+    tmpdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".test_lockfree_move_file")
+    make_dirs(tmpdir)
 
     # source is different for each process and loop iteration
     n = 3
