@@ -34,9 +34,11 @@ from dijitso.signatures import hash_params
 def extract_factory_function(lib, name):
     """Extract function from loaded library.
 
-    Assuming signature ``(void *)()``, for anything else use look at ctypes documentation.
- 
+    Assuming signature ``(void *)()``, for anything else use look at
+    ctypes documentation.
+
     Returns the factory function or raises error.
+
     """
     function = getattr(lib, name)
     function.restype = ctypes.c_void_p
