@@ -12,6 +12,7 @@ pipelines:
               python-minimal python3-minimal
               python-pip python3-pip
               python-pytest python3-pytest
+              python-pytest-cov python3-pytest-cov
               python-setuptools python3-setuptools
               python-wheel python3-wheel
               python-numpy python3-numpy
