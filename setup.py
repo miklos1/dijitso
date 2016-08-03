@@ -1,16 +1,34 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
-import sys, platform, re
-from os.path import join, split, pardir
-from distutils.core import setup
+from setuptools import setup
+from os.path import join, split
+import re
+import sys
+import platform
+import codecs
+
+module_name = "dijitso"
 
 if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
     sys.exit(1)
 
-scripts = [join("scripts", "dijitso")]
+# __init__.py has UTF-8 characters. Works in Python 2 and 3.
+version = re.findall('__version__ = "(.*)"',
+                     codecs.open(join(module_name, '__init__.py'), 'r',
+                                 encoding='utf-8').read())[0]
 
-#man1 = [join("doc", "man", "man1", "dijitso.1.gz")]
+url = "https://bitbucket.org/fenics-project/%s/" % module_name
+tarball = None
+if 'dev' not in version:
+    tarball = url + "downloads/%s-%s.tar.gz" % (module_name, version)
+
+script_names = ("dijitso-version", "dijitso-cache")
+
+scripts = [join("scripts", script) for script in script_names]
+man_files = [join("doc", "man", "man1", "%s.1.gz" % (script,)) for script in script_names]
+data_files = [(join("share", "man", "man1"), man_files)]
 
 if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     # In the Windows command prompt we can't execute Python scripts
@@ -22,23 +40,26 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
             f.write(sys.excecutable + ' "%%~dp0\%s" %%*\n' % split(script)[1])
         scripts.append(batch_file)
 
-version = re.findall('__version__ = "(.*)"',
-                     open('dijitso/__init__.py', 'r').read())[0]
-
-url = "https://bitbucket.org/fenics-project/dijitso/"
-tarball = None
-if not 'dev' in version:
-    tarball = url + "downloads/dijitso-%s.tar.gz" % version
-
-setup(name = "dijitso",
-      version = version,
-      description = "Distributed just-in-time building of shared libraries",
-      author = "Martin Sandve Alnæs",
-      author_email = "martinal@simula.no",
-      url = url,
-      download_url = tarball,
-      packages = ['dijitso'],
-      package_dir = {'dijitso': 'dijitso'},
-      scripts = scripts,
-      #data_files = [(join("share", "man", "man1"), man1)]
+setup(name="dijitso",
+      version=version,
+      description="Distributed just-in-time building of shared libraries",
+      author="Martin Sandve Alnæs",
+      author_email="martinal@simula.no",
+      url=url,
+      download_url=tarball,
+      classifiers=[
+          'Development Status :: 5 - Production/Stable',
+          'Intended Audience :: Developers',
+          'Intended Audience :: Science/Research',
+          'Programming Language :: Python :: 2.7',
+          'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+          'Topic :: Scientific/Engineering :: Mathematics',
+          'Topic :: Software Development :: Compilers',
+          'Topic :: Software Development :: Libraries :: Python Modules',
+      ],
+      scripts=scripts,
+      packages=["dijitso"],
+      package_dir={'dijitso': 'dijitso'},
+      install_requires=["numpy", "six"],
+      data_files=data_files
       )
