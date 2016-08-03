@@ -1,5 +1,6 @@
 .. title:: dijitso documentation
 
+
 =======
 dijitso
 =======
@@ -10,6 +11,7 @@ DIJITSO is part of the FEniCS Project.
 
 For more information, visit http://www.fenicsproject.org
 
+
 Documentation
 =============
 
@@ -17,10 +19,12 @@ Documentation
    :titlesonly:
    :maxdepth: 1
 
+   installation
+   manual
    API reference <api-doc/dijitso>
+   releases
 
+[FIXME: These links don't belong here, should go under API reference somehow.]
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
-
