@@ -14,10 +14,15 @@ pipelines:
               python-pytest python3-pytest
               python-setuptools python3-setuptools
               python-wheel python3-wheel
+              python-numpy python3-numpy
               --no-install-recommends
           - pip install .
           - pip3 install .
-          - py.test -v test/
-          - py.test-3 -v test/
+          - cd test
+          - export MPISIZE=1
+          - mpirun -n 1 ./mpipytest.sh
+          - export MPISIZE=8
+          - mpirun -n 8 ./mpipytest.sh
+          - cd ..
           - python -m flake8 .
           - python3 -m flake8 .
