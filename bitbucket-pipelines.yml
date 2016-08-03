@@ -25,9 +25,9 @@ pipelines:
           - py.test-3 -v test/
           - cd test
           - export MPISIZE=1
-          - echo Not running mpirun -n 1 ./mpipytest.sh
+          - mpirun -n 1 ./mpipytest.sh
           - export MPISIZE=8
-          - echo Not running mpirun -n 8 ./mpipytest.sh
+          - mpirun -n 8 ./mpipytest.sh
           - cd ..
           - python -m flake8 .
           - python3 -m flake8 .
