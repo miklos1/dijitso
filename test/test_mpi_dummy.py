@@ -1,4 +1,3 @@
-#!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2015 Martin Sandve Alnæs
 #
@@ -18,7 +17,7 @@
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-import pytest
+
 
 def test_mpi_dummy(comm):
     assert comm.rank < comm.size

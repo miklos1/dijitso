@@ -1,9 +1,10 @@
-#!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import pytest
 from dijitso.system import make_dirs
 from dijitso.mpi import create_comms_and_role
+
 
 @pytest.fixture()
 def lib_dir0(comm):
@@ -12,12 +13,14 @@ def lib_dir0(comm):
     make_dirs(path)
     return path
 
+
 @pytest.fixture()
 def lib_dir2(comm):
     # Fake some common and some shared libdirs
     path = ".test_roles_%d_of_2" % (comm.rank % 2,)
     make_dirs(path)
     return path
+
 
 def test_role_root(comm, lib_dir2):
     buildon = "root"
@@ -40,12 +43,13 @@ def test_role_root(comm, lib_dir2):
         assert copy_comm.size == min(comm.size, 2)
     assert (comm.size//2) <= wait_comm.size <= (comm.size//2+1)
 
+
 def test_role_node(comm, lib_dir2):
     buildon = "node"
 
     copy_comm, wait_comm, role = create_comms_and_role(comm, lib_dir2, buildon)
 
-    if comm.rank in (0,1):
+    if comm.rank in (0, 1):
         expected_role = "builder"
     else:
         expected_role = "waiter"
@@ -56,6 +60,7 @@ def test_role_node(comm, lib_dir2):
     assert wait_comm is not None
 
     assert (comm.size//2) <= wait_comm.size <= (comm.size//2+1)
+
 
 def test_role_process(comm, lib_dir0):
     buildon = "process"
