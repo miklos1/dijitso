@@ -7,6 +7,7 @@ pipelines:
           - apt-get update
           - apt-get install -y
               g++ libmpich-dev mpich
+              python-dev python3-dev
               python-flake8 python3-flake8
               python-minimal python3-minimal
               python-pip python3-pip
