@@ -21,11 +21,17 @@ Requirements and dependencies
 DIJITSO requires Python version 2.7 or later and depends on the
 following Python packages:
 
-* NumPy
 * six
+* NumPy
 
 These packages will be automatically installed as part of the
 installation of DIJITSO, if not already present on your system.
+
+Additionally, to run tests the following packages are needed
+
+* pytest
+* mpi4py (for running tests with mpi)
+
 
 Installation instructions
 =========================
