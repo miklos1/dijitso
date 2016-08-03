@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
+"""This module contains the main jit() function and related utilities."""
+
 from __future__ import unicode_literals
 
 import ctypes
@@ -32,8 +34,8 @@ from dijitso.signatures import hash_params
 def extract_factory_function(lib, name):
     """Extract function from loaded library.
 
-    Assuming signature "(void *)()", for anything else use look at ctypes documentation.
-
+    Assuming signature ``(void *)()``, for anything else use look at ctypes documentation.
+ 
     Returns the factory function or raises error.
     """
     function = getattr(lib, name)
