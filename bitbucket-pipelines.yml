@@ -17,6 +17,8 @@ pipelines:
               python-wheel python3-wheel
               python-numpy python3-numpy
               --no-install-recommends
+          - python -m flake8 .
+          - python3 -m flake8 .
           - pip install mpi4py
           - pip3 install mpi4py
           - pip install .
@@ -28,6 +30,3 @@ pipelines:
           - mpirun -n 1 ./mpipytest.sh
           - export MPISIZE=8
           - mpirun -n 8 ./mpipytest.sh
-          - cd ..
-          - python -m flake8 .
-          - python3 -m flake8 .
