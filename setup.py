@@ -40,6 +40,26 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
             f.write(sys.excecutable + ' "%%~dp0\%s" %%*\n' % split(script)[1])
         scripts.append(batch_file)
 
+CLASSIFIERS = """\
+Development Status :: 5 - Production/Stable
+Intended Audience :: Developers
+Intended Audience :: Science/Research
+License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)
+Operating System :: POSIX
+Operating System :: POSIX :: Linux
+Operating System :: MacOS :: MacOS X
+Operating System :: Microsoft :: Windows
+Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.4
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+Topic :: Scientific/Engineering :: Mathematics
+Topic :: Software Development :: Libraries :: Python Modules
+"""
+
 setup(name="dijitso",
       version=version,
       description="Distributed just-in-time building of shared libraries",
@@ -47,16 +67,7 @@ setup(name="dijitso",
       author_email="martinal@simula.no",
       url=url,
       download_url=tarball,
-      classifiers=[
-          'Development Status :: 5 - Production/Stable',
-          'Intended Audience :: Developers',
-          'Intended Audience :: Science/Research',
-          'Programming Language :: Python :: 2.7',
-          'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
-          'Topic :: Scientific/Engineering :: Mathematics',
-          'Topic :: Software Development :: Compilers',
-          'Topic :: Software Development :: Libraries :: Python Modules',
-      ],
+      classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
       scripts=scripts,
       packages=["dijitso"],
       package_dir={'dijitso': 'dijitso'},
