@@ -25,7 +25,7 @@ from glob import glob
 
 import numpy
 
-from dijitso.log import log, error
+from dijitso.log import info, error
 from dijitso.system import try_delete_file
 
 
@@ -215,11 +215,11 @@ def send_binary(comm, lib_data):
     # Send file size
     lib_size = numpy.ndarray((1,), dtype=numpy.uint32)
     lib_size[0] = lib_data.shape[0]
-    log("rank %d: send size with root=%d." % (comm.rank, root))
+    info("rank %d: send size with root=%d." % (comm.rank, root))
     comm.Bcast(lib_size, root=root)
 
     # Send file contents
-    log("rank %d: send data with root=%d." % (comm.rank, root))
+    info("rank %d: send data with root=%d." % (comm.rank, root))
     comm.Bcast(lib_data, root=root)
 
 
@@ -231,12 +231,12 @@ def receive_binary(comm):
 
     # Receive file size
     lib_size = numpy.ndarray((1,), dtype=numpy.uint32)
-    log("rank %d: receive size with root=%d." % (comm.rank, root))
+    info("rank %d: receive size with root=%d." % (comm.rank, root))
     comm.Bcast(lib_size, root=root)
 
     # Receive file contents
     lib_data = numpy.ndarray(lib_size[0], dtype=numpy.uint8)
-    log("rank %d: receive data with root=%d." % (comm.rank, root))
+    info("rank %d: receive data with root=%d." % (comm.rank, root))
     comm.Bcast(lib_data, root=root)
 
     return lib_data

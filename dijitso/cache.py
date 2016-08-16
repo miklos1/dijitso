@@ -25,7 +25,7 @@ import os
 import ctypes
 from dijitso.system import (make_dirs, try_delete_file, try_copy_file,
                             gzip_file, read_file, lockfree_move_file)
-from dijitso.log import error
+from dijitso.log import debug, error
 
 
 def extract_files(signature, params, prefix="", path=os.curdir):
@@ -157,11 +157,16 @@ def load_library(signature, cache_params):
     """
     lib_filename = create_lib_filename(signature, cache_params)
     if not os.path.exists(lib_filename):
+        debug("File %s does not exist" % (lib_filename,))
         return None
+
+    debug("Loading %s from %s" % (signature, lib_filename))
     try:
         lib = ctypes.cdll.LoadLibrary(lib_filename)
     except os.error:
-        error("Failed to load library %s." % (lib_filename,))
+        error("Failed to load %s from %s" % (signature, lib_filename))
+    else:
+        debug("Loaded %s from %s" % (signature, lib_filename))
 
     if lib is not None:
         # Disk loading succeeded, register loaded library in memory
@@ -187,6 +192,8 @@ def lookup_lib(lib_signature, cache_params):
     if lib is None:
         # Cache miss in memory, try looking on disk
         lib = load_library(lib_signature, cache_params)
+    else:
+        debug("Fetched %s from memory cache" % (lib_signature,))
     # Return library or None
     return lib
 

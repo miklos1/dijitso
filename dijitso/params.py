@@ -27,7 +27,7 @@ from glob import glob
 import os
 import copy
 
-from dijitso.log import log, error
+from dijitso.log import info, error
 
 
 def discover_config_filename():
@@ -58,7 +58,7 @@ def read_config_file():
         filename = discover_config_filename()
         _config_file_contents = {}
         if filename is not None:
-            log("Using config file '%s'." % (filename,))
+            info("Using config file '%s'." % (filename,))
             parser = configparser.SafeConfigParser()
             parser.read(filename)
             for category in parser.sections():

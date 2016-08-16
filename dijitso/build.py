@@ -23,7 +23,7 @@ from __future__ import unicode_literals
 import tempfile
 import os
 from dijitso.system import get_status_output, lockfree_move_file, make_dirs
-from dijitso.log import log
+from dijitso.log import info
 from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
 from dijitso.cache import create_lib_filename, create_lib_basename
 from dijitso.cache import create_src_filename, create_src_basename
@@ -199,7 +199,7 @@ def build_shared_library(signature, header, source, dependencies, params):
         # Write compiler output to failure dir
         store_textfile(log_filename, output)
 
-        log("Compilation failed! Sources, command, and "
-            "errors have been written to: %s" % (fail_dir,))
+        info("Compilation failed! Sources, command, and "
+             "errors have been written to: %s" % (fail_dir,))
 
     return status, output, lib_filename

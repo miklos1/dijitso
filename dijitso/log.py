@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Martin Sandve Alnæs
+# Copyright (C) 2015-2016 Martin Sandve Alnæs, Jan Blechta
 #
 # This file is part of DIJITSO.
 #
@@ -19,14 +19,63 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
 
-def log(msg):  # TODO: Replace with proper logging
-    print(msg)
-
-
-def warning(msg):  # TODO: Replace with proper logging
-    print(msg)
+__all__ = ['set_log_level', 'get_logger', 'get_log_handler', 'set_log_handler']
 
 
-def error(msg):
-    raise RuntimeError(msg)
+_log = logging.getLogger("dijitso")
+_loghandler = logging.StreamHandler()
+_log.addHandler(_loghandler)
+_log.setLevel(logging.INFO)
+
+
+def get_log_handler():
+    return _loghandler
+
+
+def get_logger():
+    return _log
+
+
+def set_log_handler(handler):
+    global _loghandler
+    _log.removeHandler(_loghandler)
+    _loghandler = handler
+    _log.addHandler(_loghandler)
+
+
+def set_log_level(level):
+    """Set verbosity of logging. Argument is int or one of "INFO", "WARNING",
+    "ERROR", or "DEBUG".
+    """
+    if isinstance(level, str):
+        level = level.upper()
+        assert level in ("INFO", "WARNING", "ERROR", "DEBUG")
+        level = getattr(logging, level)
+    else:
+        assert isinstance(level, int)
+    _log.setLevel(level)
+
+
+# Logging interface for dijitso library
+
+def debug(*message):
+    _log.debug(*message)
+
+def info(*message):
+    _log.info(*message)
+
+def warning(*message):
+    _log.warning(*message)
+
+def error(*message):
+    _log.error(*message)
+    text = message[0] % message[1:]
+    raise RuntimeError(text)
+
+def dijitso_assert(condition, *message):
+    if not condition:
+        _log.error(*message)
+        text = message[0] % message[1:]
+        raise AssertionError(text)

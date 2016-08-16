@@ -6,7 +6,12 @@ dijitso
 Authors:
 
 - Martin Sandve Alnæs (martinal@simula.no)
+- Garth N. Wells (gnw20@cam.ac.uk)
 - Johannes Ring (johannr@simula.no)
+
+Contributors:
+
+- Jan Blechta (blechta@karlin.mff.cuni.cz)
 
 
 Documentation
