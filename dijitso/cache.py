@@ -58,6 +58,11 @@ def _create_filename(foo, signature, cache_params):
                         cache_params[foo + "_dir"], basename)
 
 
+def create_log_basename(signature, cache_params):
+    "Create log filename based on signature and params."
+    return _create_basename("log", signature, cache_params)
+
+
 def create_log_filename(signature, cache_params):
     "Create log filename based on signature and params."
     return _create_filename("log", signature, cache_params)

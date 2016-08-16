@@ -23,11 +23,12 @@ from __future__ import unicode_literals
 import tempfile
 import os
 from dijitso.system import get_status_output, lockfree_move_file, make_dirs
-from dijitso.log import info
+from dijitso.log import info, debug
 from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
-from dijitso.cache import create_lib_filename, create_lib_basename
-from dijitso.cache import create_src_filename, create_src_basename
+from dijitso.cache import create_log_filename, create_log_basename
 from dijitso.cache import create_inc_filename, create_inc_basename
+from dijitso.cache import create_src_filename, create_src_basename
+from dijitso.cache import create_lib_filename, create_lib_basename
 from dijitso.cache import ensure_dirs
 from dijitso.cache import compress_source_code
 
@@ -128,12 +129,14 @@ def build_shared_library(signature, header, source, dependencies, params):
     build_params = params["build"]
 
     # Create basenames
+    log_basename = create_log_basename(signature, cache_params)
     inc_basename = create_inc_basename(signature, cache_params)
     src_basename = create_src_basename(signature, cache_params)
     lib_basename = create_lib_basename(signature, cache_params)
 
     # Create a temp directory and filenames within it
     tmpdir = temp_dir(build_params)
+    temp_log_filename = os.path.join(tmpdir, log_basename)
     temp_inc_filename = os.path.join(tmpdir, inc_basename)
     temp_src_filename = os.path.join(tmpdir, src_basename)
     temp_lib_filename = os.path.join(tmpdir, lib_basename)
@@ -156,22 +159,29 @@ def build_shared_library(signature, header, source, dependencies, params):
     if status == 0:
         # Create final filenames in cache dirs
         ensure_dirs(cache_params)
+        log_filename = create_log_filename(signature, cache_params)
         inc_filename = create_inc_filename(signature, cache_params)
         src_filename = create_src_filename(signature, cache_params)
         lib_filename = create_lib_filename(signature, cache_params)
+        assert os.path.exists(os.path.dirname(log_filename))
         assert os.path.exists(os.path.dirname(inc_filename))
         assert os.path.exists(os.path.dirname(src_filename))
         assert os.path.exists(os.path.dirname(lib_filename))
 
-        # Move inc,src,lib files to cache using safe lockfree move
+        # Move log,inc,src,lib files to cache using safe lockfree move
         if header:
             lockfree_move_file(temp_inc_filename, inc_filename)
+        lockfree_move_file(temp_log_filename, log_filename)
         lockfree_move_file(temp_src_filename, src_filename)
         lockfree_move_file(temp_lib_filename, lib_filename)
 
         # Compress or delete source code based on params
         # TODO: Better to do this before moving to cache
         compress_source_code(src_filename, cache_params)
+
+        debug("Compilation succeeded. Logs, includes, sources, "
+              "and binary have been written to: %s, %s, %s, %s"
+              % (log_filename, inc_filename, src_filename, lib_filename))
 
     else:
         # Create filenames in a local directory to store files for
