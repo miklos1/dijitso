@@ -63,16 +63,20 @@ def set_log_level(level):
 def debug(*message):
     _log.debug(*message)
 
+
 def info(*message):
     _log.info(*message)
 
+
 def warning(*message):
     _log.warning(*message)
+
 
 def error(*message):
     _log.error(*message)
     text = message[0] % message[1:]
     raise RuntimeError(text)
+
 
 def dijitso_assert(condition, *message):
     if not condition:
