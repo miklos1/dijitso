@@ -46,9 +46,9 @@ def add_top_arguments(parser):
 
 def extract_params_from_args(args):
     p = {}
-    p["cache_params"] = {}
+    p["cache"] = {}
     if args.root_dir is not None:
-        p["cache_params"]["root_dir"] = args.root_dir
+        p["cache"]["root_dir"] = args.root_dir
     return p
 
 def add_common_arguments(parser):
