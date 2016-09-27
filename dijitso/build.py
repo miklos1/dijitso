@@ -28,7 +28,7 @@ from distutils.ccompiler import new_compiler
 from dijitso.system import get_status_output, lockfree_move_file, make_dirs
 from dijitso.log import info, debug
 from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
-from dijitso.cache import create_lib_filename, create_lib_basename
+from dijitso.cache import create_lib_filename, create_lib_basename, create_libname
 from dijitso.cache import create_src_filename, create_src_basename
 from dijitso.cache import create_inc_filename, create_inc_basename
 from dijitso.cache import ensure_dirs
@@ -77,7 +77,7 @@ def make_compile_command(src_filename, lib_filename, dependencies,
         cxxflags.extend(build_params["cxxflags_opt"])
 
     # Create library names for all dependencies and additional given libs
-    deplibs = tuple(create_lib_filename(depsig, cache_params)
+    deplibs = tuple(create_libname(depsig, cache_params)
                     for depsig in dependencies)
     libs = deplibs + tuple(build_params["libs"])
 

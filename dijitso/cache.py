@@ -49,7 +49,10 @@ def extract_files(signature, params, prefix="", path=os.curdir):
 
 
 def _create_basename(foo, signature, cache_params):
-    return cache_params.get(foo + "_prefix", "") + signature + cache_params.get(foo + "_postfix", "")
+    return "".join((cache_params.get(foo + "_prefix", ""),
+                    cache_params.get(foo + "_basename", ""),
+                    signature,
+                    cache_params.get(foo + "_postfix", "")))
 
 
 def _create_filename(foo, signature, cache_params):
@@ -91,6 +94,11 @@ def create_lib_basename(signature, cache_params):
 def create_lib_filename(signature, cache_params):
     "Create library filename based on signature and params."
     return _create_filename("lib", signature, cache_params)
+
+
+def create_libname(signature, cache_params):
+    "Create library name based on signature and params, without path, prefix 'lib', or extension '.so'."
+    return cache_params["lib_basename"] + signature
 
 
 def make_inc_dir(cache_params):
