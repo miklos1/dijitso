@@ -135,8 +135,7 @@ def build_shared_library(signature, header, source, dependencies, params):
     cmd = make_compile_command(temp_src_filename, temp_lib_filename,
                                dependencies, build_params, cache_params)
 
-    # Execute command to compile generated source code to dynamic
-    # library
+    # Execute command to compile generated source code to dynamic library
     status, output = get_status_output(cmd)
 
     # Move files to cache on success or a local dir on failure,
