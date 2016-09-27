@@ -74,9 +74,11 @@ def default_cache_params():
         inc_dir="include",
         src_dir="src",
         lib_dir="lib",
+        fail_dir_root=None,
+        temp_dir_root=None,
         comm_dir="comm",
         log_dir="log",
-        src_storage="keep",
+        src_storage="compress",
         src_postfix=".cpp",
         log_postfix=".txt",
         inc_postfix=".h",
@@ -114,7 +116,8 @@ def default_build_params():
         lib_dirs=(),
         rpath_dirs=(),
         libs=(),
-        debug=False,)
+        debug=False,
+        )
     return p
 
 
