@@ -38,7 +38,6 @@ def extract_factory_function(lib, name):
     ctypes documentation.
 
     Returns the factory function or raises error.
-
     """
     function = getattr(lib, name)
     function.restype = ctypes.c_void_p

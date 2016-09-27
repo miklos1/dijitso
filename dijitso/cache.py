@@ -25,7 +25,7 @@ import os
 import ctypes
 from dijitso.system import (make_dirs, try_delete_file, try_copy_file,
                             gzip_file, read_file, lockfree_move_file)
-from dijitso.log import debug, error
+from dijitso.log import debug, error, warning
 
 
 def extract_files(signature, params, prefix="", path=os.curdir):
@@ -277,6 +277,7 @@ def compress_source_code(src_filename, cache_params):
     elif src_storage == "compress":
         filename = gzip_file(src_filename)
         try_delete_file(src_filename)
+        warning("compressed file %s as %s" % (src_filename, filename))
     else:
         error("Invalid src_storage parameter. Expecting 'keep', 'delete', or 'compress'.")
     return filename

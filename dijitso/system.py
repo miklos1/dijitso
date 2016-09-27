@@ -130,15 +130,19 @@ def gzip_file(filename):
 
     Original file is never touched.
     """
+    # Expecting source file to be there
+    if not os.path.exists(filename):
+        return None
     # Avoid doing work if file is already there
     gz_filename = filename + ".gz"
-    if os.path.exists(filename) and not os.path.exists(gz_filename):
+    if not os.path.exists(gz_filename):
         # Write gzipped contents to a temp file
         tmp_filename = filename + "-tmp-" + uuid.uuid4().hex + ".gz"
         with open(filename, "rb") as f_in, gzip.open(tmp_filename, "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
         # Safe move to target filename, other processes may compete here
         lockfree_move_file(tmp_filename, gz_filename)
+    return gz_filename
 
 
 def read_file(filename):

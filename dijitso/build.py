@@ -161,6 +161,8 @@ def build_shared_library(signature, header, source, dependencies, params):
         temp_src_filename = compress_source_code(temp_src_filename, cache_params)
         if temp_src_filename:
             src_filename = create_src_filename(signature, cache_params)
+            if temp_src_filename.endswith(".gz"):
+                src_filename = src_filename + ".gz"
             assert os.path.exists(os.path.dirname(src_filename))
             lockfree_move_file(temp_src_filename, src_filename)
         else:
@@ -184,7 +186,7 @@ def build_shared_library(signature, header, source, dependencies, params):
             inc_filename = os.path.join(fail_dir, inc_basename)
             lockfree_move_file(temp_inc_filename, inc_filename)
 
-        # Always write source
+        # Always write source for inspection after compilation failure
         src_filename = os.path.join(fail_dir, src_basename)
         lockfree_move_file(temp_src_filename, src_filename)
 
