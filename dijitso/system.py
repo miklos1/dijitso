@@ -42,9 +42,13 @@ from dijitso.log import warning
 #       http://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.12_rc1_release_notes#3.03
 # However, subprocess32 backports the fix from Python 3 to 2.7.
 if os.name == 'posix' and sys.version_info[0] < 3:
-    import subprocess32 as subprocess
+    try:
+        import subprocess32 as subprocess
+    except:
+        import subprocess
 else:
     import subprocess
+
 
 def get_status_output(cmd, input=None, cwd=None, env=None):
     """Replacement for commands.getstatusoutput which does not work on Windows (or Python 3)."""
