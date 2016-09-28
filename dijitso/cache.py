@@ -25,7 +25,7 @@ import os
 import ctypes
 from dijitso.system import (make_dirs, try_delete_file, try_copy_file,
                             gzip_file, read_file, lockfree_move_file)
-from dijitso.log import debug, error
+from dijitso.log import debug, error, warning
 
 
 def extract_files(signature, params, prefix="", path=os.curdir):
@@ -49,7 +49,10 @@ def extract_files(signature, params, prefix="", path=os.curdir):
 
 
 def _create_basename(foo, signature, cache_params):
-    return cache_params.get(foo + "_prefix", "") + signature + cache_params.get(foo + "_postfix", "")
+    return "".join((cache_params.get(foo + "_prefix", ""),
+                    cache_params.get(foo + "_basename", ""),
+                    signature,
+                    cache_params.get(foo + "_postfix", "")))
 
 
 def _create_filename(foo, signature, cache_params):
@@ -91,6 +94,18 @@ def create_lib_basename(signature, cache_params):
 def create_lib_filename(signature, cache_params):
     "Create library filename based on signature and params."
     return _create_filename("lib", signature, cache_params)
+
+
+def create_libname(signature, cache_params):
+    "Create library name based on signature and params, without path, prefix 'lib', or extension '.so'."
+    return cache_params["lib_basename"] + signature
+
+
+def create_fail_dir_path(signature, cache_params):
+    "Create path name to place files after a module build failure."
+    fail_root = cache_params["fail_dir_root"] or os.curdir
+    fail_dir = os.path.join(fail_root, "jitfailure-" + signature)
+    return os.path.abspath(fail_dir)
 
 
 def make_inc_dir(cache_params):

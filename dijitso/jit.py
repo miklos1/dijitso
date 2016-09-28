@@ -38,14 +38,13 @@ def extract_factory_function(lib, name):
     ctypes documentation.
 
     Returns the factory function or raises error.
-
     """
     function = getattr(lib, name)
     function.restype = ctypes.c_void_p
     return function
 
 
-def jit_signature(name, params):
+def jit_signature(name, params):  # TODO: Unused?
     """Compute the signature that jit will use for given name and params."""
 
     # Validation and completion with defaults for missing parameters
@@ -61,10 +60,11 @@ def jit_signature(name, params):
     return signature
 
 
-def jit(jitable, name, params, generate=None, send=None, receive=None,
-        wait=None):
-    """Just-in-time compile and import of a shared library with a cache
-mechanism.
+# TODO: send, receive, wait functionality is not currently in use,
+# decide to use it from dolfin or clean up the code and comments here.
+def jit(jitable, name, params, generate=None,
+        send=None, receive=None, wait=None):
+    """Just-in-time compile and import of a shared library with a cache mechanism.
 
     A signature is computed from the name, params["generator"],
     and params["build"]. The name should be a unique identifier
@@ -140,6 +140,7 @@ mechanism.
 
     # 0) Look for library in memory or disk cache
     # FIXME: use only name as signature for now
+    # TODO: just remove one of signature or name from API?
     # signature = jit_signature(name, params)
     signature = name
     cache_params = params["cache"]

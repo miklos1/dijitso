@@ -22,14 +22,52 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
-import subprocess
 import sys
 import errno
 import gzip
 import shutil
+import stat
 import uuid
 from glob import glob
+
 from dijitso.log import warning
+
+
+# NOTE: subprocess in Python 2 is not OFED-fork-safe! Check subprocess.py,
+#       http://bugs.python.org/issue1336#msg146685
+#       OFED-fork-safety means that parent should not
+#       touch anything between fork() and exec(),
+#       which is not met in subprocess module. See
+#       https://www.open-mpi.org/faq/?category=openfabrics#ofa-fork
+#       http://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.12_rc1_release_notes#3.03
+# However, subprocess32 backports the fix from Python 3 to 2.7.
+if os.name == 'posix' and sys.version_info[0] < 3:
+    try:
+        import subprocess32 as subprocess
+    except:
+        import subprocess
+else:
+    import subprocess
+
+
+def get_status_output(cmd, input=None, cwd=None, env=None):
+    """Replacement for commands.getstatusoutput which does not work on Windows (or Python 3)."""
+    if isinstance(cmd, str):
+        cmd = cmd.strip().split()
+    pipe = subprocess.Popen(cmd, shell=False, cwd=cwd, env=env,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    (output, errout) = pipe.communicate(input=input)
+    assert not errout
+    status = pipe.returncode
+    if sys.version_info[0] > 2:
+        output = output.decode('utf-8')
+    return (status, output)
+
+
+def make_executable(filename):
+    "Make script executable by setting user eXecutable bit."
+    permissions = stat.S_IMODE(os.lstat(filename).st_mode)
+    os.chmod(filename, permissions | stat.S_IXUSR)
 
 
 def make_dirs(path):
@@ -103,15 +141,19 @@ def gzip_file(filename):
 
     Original file is never touched.
     """
+    # Expecting source file to be there
+    if not os.path.exists(filename):
+        return None
     # Avoid doing work if file is already there
     gz_filename = filename + ".gz"
-    if os.path.exists(filename) and not os.path.exists(gz_filename):
+    if not os.path.exists(gz_filename):
         # Write gzipped contents to a temp file
         tmp_filename = filename + "-tmp-" + uuid.uuid4().hex + ".gz"
         with open(filename, "rb") as f_in, gzip.open(tmp_filename, "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
         # Safe move to target filename, other processes may compete here
         lockfree_move_file(tmp_filename, gz_filename)
+    return gz_filename
 
 
 def read_file(filename):
@@ -194,29 +236,3 @@ def lockfree_move_file(src, dst):
         raise RuntimeError("Source file should not exist at this point!")
     if not os.path.exists(dst):
         raise RuntimeError("Destination file should exist at this point!")
-
-
-# Copied in from Instant
-def get_status_output(cmd, input=None, cwd=None, env=None):
-    """Replacement for commands.getstatusoutput which does not work on
-Windows (or Python 3)"""
-    if isinstance(cmd, str):
-        cmd = cmd.strip().split()
-
-    # NOTE: This is not OFED-fork-safe! Check subprocess.py,
-    #       http://bugs.python.org/issue1336#msg146685
-    #       OFED-fork-safety means that parent should not
-    #       touch anything between fork() and exec(),
-    #       which is not met in subprocess module. See
-    #       https://www.open-mpi.org/faq/?category=openfabrics#ofa-fork
-    #       http://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.12_rc1_release_notes#3.03
-    pipe = subprocess.Popen(cmd, shell=False, cwd=cwd, env=env,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-    (output, errout) = pipe.communicate(input=input)
-    assert not errout
-
-    status = pipe.returncode
-    output = output.decode('utf-8') if sys.version_info[0] > 2 else output
-
-    return (status, output)

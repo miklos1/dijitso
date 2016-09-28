@@ -60,6 +60,10 @@ Topic :: Scientific/Engineering :: Mathematics
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
+requires = ["numpy", "six"]
+if sys.version_info[0] == 2:
+    requires.append("subprocess32")
+
 setup(name="dijitso",
       version=version,
       description="Distributed just-in-time building of shared libraries",
@@ -71,6 +75,6 @@ setup(name="dijitso",
       scripts=scripts,
       packages=["dijitso"],
       package_dir={'dijitso': 'dijitso'},
-      install_requires=["numpy", "six"],
+      install_requires=requires,
       data_files=data_files
       )
