@@ -25,13 +25,13 @@ import os
 
 from distutils.ccompiler import new_compiler
 
-from dijitso.system import get_status_output, lockfree_move_file, make_dirs
+from dijitso.system import get_status_output, lockfree_move_file, make_dirs, make_executable
 from dijitso.log import info, debug
 from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
 from dijitso.cache import create_lib_filename, create_lib_basename, create_libname
 from dijitso.cache import create_src_filename, create_src_basename
 from dijitso.cache import create_inc_filename, create_inc_basename
-from dijitso.cache import ensure_dirs
+from dijitso.cache import ensure_dirs, create_fail_dir_path
 from dijitso.cache import compress_source_code
 
 
@@ -174,8 +174,7 @@ def build_shared_library(signature, header, source, dependencies, params):
 
     else:
         # Create filenames in a local directory to store files for reproducing failure
-        fail_root = cache_params["fail_dir_root"] or os.curdir
-        fail_dir = os.path.abspath(os.path.join(fail_root, "jitfailure-" + signature))
+        fail_dir = create_fail_dir_path(signature, cache_params)
         make_dirs(fail_dir)
 
         # Library name is returned below
@@ -195,8 +194,15 @@ def build_shared_library(signature, header, source, dependencies, params):
         cmd = make_compile_command(src_basename, lib_basename, dependencies,
                                    build_params, cache_params)
         cmds = " ".join(cmd)
-        cmd_filename = os.path.join(fail_dir, "command")
-        store_textfile(cmd_filename, cmds)
+        script = "#!/bin/bash\n# Execute this file to recompile locally\n" + cmds
+        cmd_filename = os.path.join(fail_dir, "recompile.sh")
+        store_textfile(cmd_filename, script)
+        make_executable(cmd_filename)
+
+        # Write readme file with instructions
+        readme = "Run or source recompile.sh to compile locally and reproduce the build failure.\n"
+        readme_filename = os.path.join(fail_dir, "README")
+        store_textfile(readme_filename, readme)
 
         # Write compiler output to failure dir (will refer to temp paths)
         log_filename = os.path.join(fail_dir, "error.log")

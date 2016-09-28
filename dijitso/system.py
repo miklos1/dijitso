@@ -26,6 +26,7 @@ import sys
 import errno
 import gzip
 import shutil
+import stat
 import uuid
 from glob import glob
 
@@ -57,6 +58,12 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
     if sys.version_info[0] > 2:
         output = output.decode('utf-8')
     return (status, output)
+
+
+def make_executable(filename):
+    "Make script executable by setting user eXecutable bit."
+    permissions = stat.S_IMODE(os.lstat(filename).st_mode)
+    os.chmod(filename, permissions | stat.S_IXUSR)
 
 
 def make_dirs(path):

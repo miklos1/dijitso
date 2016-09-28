@@ -101,6 +101,13 @@ def create_libname(signature, cache_params):
     return cache_params["lib_basename"] + signature
 
 
+def create_fail_dir_path(signature, cache_params):
+    "Create path name to place files after a module build failure."
+    fail_root = cache_params["fail_dir_root"] or os.curdir
+    fail_dir = os.path.join(fail_root, "jitfailure-" + signature)
+    return os.path.abspath(fail_dir)
+
+
 def make_inc_dir(cache_params):
     d = os.path.join(cache_params["cache_dir"], cache_params["inc_dir"])
     make_dirs(d)
@@ -277,7 +284,6 @@ def compress_source_code(src_filename, cache_params):
     elif src_storage == "compress":
         filename = gzip_file(src_filename)
         try_delete_file(src_filename)
-        warning("compressed file %s as %s" % (src_filename, filename))
     else:
         error("Invalid src_storage parameter. Expecting 'keep', 'delete', or 'compress'.")
     return filename
