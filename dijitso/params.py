@@ -90,7 +90,7 @@ def default_cache_params():
 
 
 def default_cxx_flags():
-    return ("-shared", "-fPIC", "-fvisibility=hidden", "-std=c++11")
+    return ("-shared", "-fPIC", "-std=c++11") #"-fvisibility=hidden",
 
 
 def default_cxx_debug_flags():
