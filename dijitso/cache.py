@@ -32,7 +32,7 @@ from dijitso.system import read_file_lines, read_file
 from dijitso.log import debug, error, warning
 
 
-def extract_files(signature, params, prefix="", path=os.curdir,
+def extract_files(signature, cache_params, prefix="", path=os.curdir,
                   categories=("inc", "src", "lib", "log")):
     """Make a copy of files stored under this signature.
 
@@ -41,7 +41,6 @@ def extract_files(signature, params, prefix="", path=os.curdir,
     path = os.path.join(path, prefix + signature)
     make_dirs(path)
 
-    cache_params = params["cache"]
     if "inc" in categories:
         inc_filename = create_inc_filename(signature, cache_params)
         try_copy_file(inc_filename, path)
@@ -77,6 +76,17 @@ def extract_lib_signatures(cache_params):
     return sigs
 
 
+def clean_cache(cache_params, dryrun=True, categories=("inc","src","lib","log")):
+    "Delete files from cache."
+    gc = glob_cache(cache_params, categories=categories)
+    for category in gc:
+        for fn in gc[category]:
+            if dryrun:
+                print("rm %s" % (fn,))
+            else:
+                try_delete_file(fn)
+
+
 def glob_cache(cache_params, categories=("inc", "src", "lib", "log")):
     """Return dict with contents of cache subdirectories."""
     g = {}
@@ -108,7 +118,7 @@ def grep_cache(regex, cache_params,
                     else:
                         line = line.rstrip("\n\r")
                         if linenumbers:
-                            line = "%5d:\t%s" % (i, line)
+                            line = (i, line)
                         matches.append(line)
             if matches:
                 allmatches[fn] = matches

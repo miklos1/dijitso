@@ -34,26 +34,30 @@ def build_commands(cmd_namespace):
     Returns dict {basename: function}.
     """
     commands = {}
+    args = {}
     for name in list(cmd_namespace.keys()):
         if name.startswith("cmd_"):
-            cmd = cmd_namespace[name]
             cmd_name = name.replace("cmd_", "")
+            cmd = cmd_namespace[name]
             commands[cmd_name] = cmd
-    return commands
+            args_name = "args_" + cmd_name
+            if args_name in cmd_namespace:
+                args[cmd_name] = cmd_namespace.get(args_name)
+    return commands, args
 
 
 def add_top_arguments(parser):
     "Add arguments to top level parser."
     parser.add_argument("--verbose", "-v", default=False, help="set logging level")
-    parser.add_argument("--root-dir", "-r", default=None, help="set non-default cache repository path")
-    #parser.add_argument("--dry-run", "-n", default=False, help="only show what would be done, don't touch filesystem")
+    parser.add_argument("--cache-dir", "-r", default=None, help="use non-default cache root path")
+    parser.add_argument("--dry-run", "-n", default=False, help="only show what would be done, don't modify filesystem")
 
 
 def extract_params_from_args(args):
     p = {}
     p["cache"] = {}
-    if args.root_dir is not None:
-        p["cache"]["root_dir"] = args.root_dir
+    if args.cache_dir is not None:
+        p["cache"]["cache_dir"] = args.cache_dir
     return p
 
 
@@ -62,13 +66,13 @@ def add_common_arguments(parser):
     pass
 
 
-def add_cmd_arguments(cmd, parser):
+def add_cmd_arguments(cmd, parser, args):
     "Add arguments specific to a command."
     if hasattr(cmd, "add_arguments"):
         cmd.add_arguments(parser)
 
 
-def build_parsers(commands):
+def build_parsers(commands, args):
     """Builds a top parser with subparsers for each command."""
     top_parser = argparse.ArgumentParser()
     add_top_arguments(top_parser)
@@ -78,7 +82,8 @@ def build_parsers(commands):
     for cmd_name, cmd in commands.items():
         parser = subparsers.add_parser(cmd_name, help=cmd.__doc__)
         add_common_arguments(parser)
-        add_cmd_arguments(cmd, parser)
+        if cmd_name in args:
+            args[cmd_name](parser)
         cmd_parsers[cmd_name] = parser
 
     return top_parser, subparsers, cmd_parsers
@@ -87,8 +92,8 @@ def build_parsers(commands):
 def main(argv):
     """This is the commandline tool for the python module dijitso."""
     # Build subparsers for each command
-    commands = build_commands(vars(cmd_namespace))
-    top_parser, subparsers, cmd_parsers = build_parsers(commands)
+    commands, args = build_commands(vars(cmd_namespace))
+    top_parser, subparsers, cmd_parsers = build_parsers(commands, args)
 
     # Populate args namespace
     args = argparse.Namespace()
