@@ -101,7 +101,7 @@ def make_compile_command(src_filename, lib_filename, dependencies,
     if sys.platform == "darwin":
         full_lib_filename = os.path.join(cache_params["cache_dir"],
             cache_params["lib_dir"], os.path.basename(lib_filename))
-        args.append("-install_name=%s" % full_lib_filename)
+        args.append("-Wl,-install_name,%s" % full_lib_filename)
 
     # The output library
     args.append("-o" + lib_filename)
