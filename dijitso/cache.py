@@ -20,33 +20,99 @@
 
 from __future__ import unicode_literals
 
+from glob import glob
 import uuid
 import os
 import re
 import ctypes
-from dijitso.system import (make_dirs, try_delete_file, try_copy_file,
-                            gzip_file, read_file, lockfree_move_file)
+from dijitso.system import make_dirs, lockfree_move_file
+from dijitso.system import try_delete_file, try_copy_file
+from dijitso.system import gzip_file, gunzip_file
+from dijitso.system import read_file_lines, read_file
 from dijitso.log import debug, error, warning
 
 
-def extract_files(signature, params, prefix="", path=os.curdir):
+def extract_files(signature, params, prefix="", path=os.curdir,
+                  categories=("inc", "src", "lib", "log")):
     """Make a copy of files stored under this signature.
 
     Target filenames are '<path>/<prefix>-<signature>.*'
     """
-    path = os.path.join(path, "-".join((prefix, signature)))
+    path = os.path.join(path, prefix + signature)
     make_dirs(path)
 
     cache_params = params["cache"]
-    src_filename = create_src_filename(signature, cache_params)
-    inc_filename = create_inc_filename(signature, cache_params)
-    log_filename = create_log_filename(signature, cache_params)
-
-    try_copy_file(src_filename, path)
-    try_copy_file(inc_filename, path)
-    try_copy_file(log_filename, path)
+    if "inc" in categories:
+        inc_filename = create_inc_filename(signature, cache_params)
+        try_copy_file(inc_filename, path)
+    if "src" in categories:
+        src_filename = create_src_filename(signature, cache_params)
+        if not os.path.exists(src_filename):
+            src_filename = src_filename + ".gz"
+        if os.path.exists(src_filename):
+            try_copy_file(src_filename, path)
+            if src_filename.endswith(".gz"):
+                gunzip_file(os.path.join(path, os.path.basename(src_filename)))
+    if "lib" in categories:
+        lib_filename = create_lib_filename(signature, cache_params)
+        try_copy_file(lib_filename, path)
+    if "log" in categories:
+        log_filename = create_log_filename(signature, cache_params)
+        try_copy_file(log_filename, path)
 
     return path
+
+
+def extract_lib_signatures(cache_params):
+    "Extract signatures from library files in cache."
+    p = os.path.join(cache_params["cache_dir"], cache_params["lib_dir"])
+    filenames = glob(os.path.join(p, "*"))
+
+    r = re.compile(create_lib_filename("(.*)", cache_params))
+    sigs = []
+    for f in filenames:
+        m = r.match(f)
+        if m:
+            sigs.append(m.group(1))
+    return sigs
+
+
+def glob_cache(cache_params, categories=("inc", "src", "lib", "log")):
+    """Return dict with contents of cache subdirectories."""
+    g = {}
+    for foo in categories:
+        p = os.path.join(cache_params["cache_dir"], cache_params[foo + "_dir"])
+        g[foo] = glob(os.path.join(p, "*"))
+    return g
+
+
+def grep_cache(regex, cache_params,
+               linenumbers=False, countonly=False,
+               categories=("inc", "src", "log")):
+    "Search through files in cache for a pattern."
+    allmatches = {}
+    gc = glob_cache(cache_params, categories=categories)
+    for category in categories:
+        for fn in gc.get(category, ()):
+            lines = read_file_lines(fn)
+            if countonly:
+                matches = 0
+            else:
+                matches = []
+            for i, line in enumerate(lines):
+                m = regex.match(line)
+                #print(bool(m), line)
+                if m:
+                    if countonly:
+                        matches += 1
+                    else:
+                        line = line.rstrip("\n\r")
+                        if linenumbers:
+                            line = "%5d:\t%s" % (i, line)
+                        matches.append(line)
+            if matches:
+                allmatches[fn] = matches
+    return allmatches
 
 
 def _create_basename(foo, signature, cache_params):

@@ -156,15 +156,51 @@ def gzip_file(filename):
     return gz_filename
 
 
+def gunzip_file(gz_filename):
+    """Gunzip a file."""
+    assert gz_filename[-3:] == ".gz"
+    filename = gz_filename[:-3]
+    # Write gzipped contents to a temp file
+    tmp_filename = filename + "-tmp-" + uuid.uuid4().hex
+    with gzip.open(gz_filename, "rb") as f_in, open(tmp_filename, "wb") as f_out:
+        shutil.copyfileobj(f_in, f_out)
+    # Safe move to target filename, other processes may compete here
+    lockfree_move_file(tmp_filename, filename)
+    try_delete_file(gz_filename)
+    return filename
+
+
+def read_file_lines(filename):
+    """Try to read file lines, if necessary unzipped
+    from filename.gz, return empty list if not found."""
+    if not os.path.exists(filename):
+        filename = filename + ".gz"
+    if not os.path.exists(filename):
+        content = ()
+    else:
+        if filename.endswith(".gz"):
+            with gzip.open(filename) as f:
+                content = f.readlines()
+        else:
+            with open(filename, "r") as f:
+                content = f.readlines()
+    return content
+
+
 def read_file(filename):
-    "Try to read file content, if necessary unzipped from filename.gz, return None if not found."
-    content = None
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            content = f.read()
-    elif os.path.exists(filename + ".gz"):
-        with gzip.open(filename + ".gz") as f:
-            content = f.read()
+    """Try to read file content, if necessary unzipped
+    from filename.gz, return None if not found."""
+    if not os.path.exists(filename):
+        filename = filename + ".gz"
+    if not os.path.exists(filename):
+        content = None
+    else:
+        if filename.endswith(".gz"):
+            with gzip.open(filename) as f:
+                content = f.read()
+        else:
+            with open(filename, "r") as f:
+                content = f.read()
     return content
 
 

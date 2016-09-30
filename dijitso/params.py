@@ -78,6 +78,7 @@ def default_cache_params():
         temp_dir_root=None,
         comm_dir="comm",
         log_dir="log",
+        enable_build_log=True,
         src_storage="compress",
         src_postfix=".cpp",
         log_postfix=".txt",
