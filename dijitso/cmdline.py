@@ -110,7 +110,7 @@ def cmd_show(args, params):
 
 
 def args_clean(parser):
-    parser.add_argument("--categories", default="inc,src", help="comma separated list to enable inc,src,lib,log")
+    parser.add_argument("--categories", default="inc,src,lib,log", help="comma separated list to enable inc,src,lib,log")
 
 def cmd_clean(args, params):
     "remove files from cache"
