@@ -18,7 +18,6 @@
 
 """Utilities for interfacing with the system."""
 
-from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
