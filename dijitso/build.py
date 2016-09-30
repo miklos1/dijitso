@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 import tempfile
 import os
+import sys
 
 from distutils.ccompiler import new_compiler
 
@@ -95,6 +96,12 @@ def make_compile_command(src_filename, lib_filename, dependencies,
     args.extend("-L" + path for path in lib_dirs)
     args.extend("-Wl,-rpath," + path for path in rpath_dirs)
     args.extend("-l" + lib for lib in deplibs)
+
+    # OSX specific:
+    if sys.platform == "darwin":
+        full_lib_filename = os.path.join(cache_params["cache_dir"],
+            cache_params["lib_dir"], os.path.basename(lib_filename))
+        args.append("-install_name=%s" % full_lib_filename)
 
     # The output library
     args.append("-o" + lib_filename)
