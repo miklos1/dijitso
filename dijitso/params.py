@@ -90,14 +90,20 @@ def default_cache_params():
 
 
 def default_cxx_flags():
-    return ("-shared", "-fPIC", "-std=c++11") #"-fvisibility=hidden",
+    "Default C++ flags for all build modes."
+    # Dropped because of some symbol sharing across dependent modules from ffc:
+    #"-fvisibility=hidden",
+    return ("-Wall", "-shared", "-fPIC", "-std=c++11")
 
 
 def default_cxx_debug_flags():
+    "Default C++ flags for debug=True. Note: FFC always overrides these."
     return ("-g", "-O0")
 
 
 def default_cxx_release_flags():
+    "Default C++ flags for debug=False. Note: FFC always overrides these."
+
     # These flags deal with handling of nan, inf, underflow, division
     # by zero, etc.  which should be ok for most of our purposes. It
     # might be better to place them in ffc or make them dependent on
@@ -110,7 +116,7 @@ def default_cxx_release_flags():
 
 def default_build_params():
     p = dict(
-        cxx="g++",
+        cxx="c++",
         cxxflags=default_cxx_flags(),
         cxxflags_debug=default_cxx_debug_flags(),
         cxxflags_opt=default_cxx_release_flags(),
