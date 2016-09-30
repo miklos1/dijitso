@@ -28,6 +28,7 @@ import gzip
 import shutil
 import stat
 import uuid
+import re
 from glob import glob
 
 from dijitso.log import warning
@@ -236,3 +237,30 @@ def lockfree_move_file(src, dst):
         raise RuntimeError("Source file should not exist at this point!")
     if not os.path.exists(dst):
         raise RuntimeError("Destination file should exist at this point!")
+
+
+def ldd(libname):
+    """Run the ldd system tool on libname.
+
+    Returns output as a dict {basename: fullpath} with all
+    dynamic library dependencies and their resolution path.
+
+    This is a debugging tool and may fail if ldd is not
+    available or behaves differently on this system.
+    """
+    status, output = get_status_output(["ldd", libname])
+    libraries = {}
+    for line in output.splitlines():
+        match = re.match(r'(.*)=>([^(]*)(.*)', line)
+        if match:
+            dlib = match.group(1).strip()
+            dlibpath = match.group(2).strip()
+            address = match.group(3).strip()
+            if address:
+                # Path can be empty for system libs
+                assert dlibpath == "" or os.path.exists(dlibpath)
+                libraries[dlib] = dlibpath
+            else:
+                assert not os.path.exists(dlibpath)
+                libraries[dlib] = None
+    return libraries

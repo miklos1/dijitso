@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 import uuid
 import os
+import re
 import ctypes
 from dijitso.system import (make_dirs, try_delete_file, try_copy_file,
                             gzip_file, read_file, lockfree_move_file)
@@ -163,6 +164,44 @@ def write_library_binary(lib_data, signature, cache_params):
     # TODO: Set permissions?
 
 
+def analyse_load_error(e, lib_filename, cache_params):
+    # Try to analyse error further for better error message:
+    msg = str(e)
+    r = re.compile("(" + create_lib_basename(".*", cache_params) + ")")
+    m = r.match(msg)
+    if m:
+        # Found libname mentioned in message
+        mlibname = m.group(1)
+        mlibname = os.path.join(cache_params["cache_dir"], cache_params["lib_dir"], mlibname)
+    else:
+        mlibname = lib_filename
+
+    bar = "*"*70
+    if lib_filename != mlibname:
+        # Message mentions some other dijitso library,
+        # double check if this other file exists
+        # (if it does, could be paths or rpath issue)
+        if os.path.exists(mlibname):
+            emsg = ("dijitso failed to load library:\n\t%s\n"
+                    "but dependency file exists:\n\t%s\nerror is:\n\t%s" % (
+                    lib_filename, mlibname, str(e)))
+        else:
+            emsg = ("dijitso failed to load library:\n\t%s\n"
+                    "dependency file missing:\n\t%s\nerror is:\n\t%s" % (
+                    lib_filename, mlibname, str(e)))
+    else:
+        # Message doesn't mention another dijitso library,
+        # double check if library file we tried to load exists
+        # (if it does, could be paths issue)
+        if os.path.exists(lib_filename):
+            emsg = ("dijitso failed to load existing file:\n"
+                    "\t%s\nerror is:\n\t%s" % (lib_filename, str(e)))
+        else:
+            emsg = ("dijitso failed to load missing file:\n"
+                    "\t%s\nerror is:\n\t%s" % (lib_filename, str(e)))
+    return emsg
+
+
 def load_library(signature, cache_params):
     """Load existing dynamic library from disk.
 
@@ -174,12 +213,14 @@ def load_library(signature, cache_params):
     if not os.path.exists(lib_filename):
         debug("File %s does not exist" % (lib_filename,))
         return None
-
+    debug("AAA")
     debug("Loading %s from %s" % (signature, lib_filename))
     try:
         lib = ctypes.cdll.LoadLibrary(lib_filename)
-    except os.error:
-        error("Failed to load %s from %s" % (signature, lib_filename))
+    except os.error as e:
+        lib = None
+        emsg = analyse_load_error(e, lib_filename, cache_params)
+        warning(emsg)
     else:
         debug("Loaded %s from %s" % (signature, lib_filename))
 
@@ -287,3 +328,42 @@ def compress_source_code(src_filename, cache_params):
     else:
         error("Invalid src_storage parameter. Expecting 'keep', 'delete', or 'compress'.")
     return filename
+
+
+def get_dijitso_dependencies(libname, cache_params):
+    "Run ldd and filter output to only include dijitso cache entries."
+    libs = ldd(libname)
+    dlibs = {}
+    for k in libs:
+        if k.startswith(cache_params["lib_prefix"]):
+            dlibs[k] = libs[k]
+    return dlibs
+
+
+# TODO: Use this in command-line tools?
+def check_cache_integrity(cache_params):
+    "Check dijitso cache integrity."
+    visited = set()
+    libnames = set(glob(cache_params["lib_prefix"] + "*" + cache_params["lib_postfix"]))
+    dmissing = {}
+    for libname in libnames:
+        dlibs = get_dijitso_dependencies(libname, cache_params)
+        # Missing on file system:
+        missing = [k for k in dlibs if k not in libnames]
+        for k in dlibs:
+            if k not in missing:
+                # ldd thinks file is missing but it's there, linker issue?
+               pass
+        if missing:
+            dmissing[libname] = sorted(missing)
+    return dmissing
+
+
+def report_cache_integrity(dmissing, out=warning):
+    "Print cache integrity report."
+    if dmissing:
+        out("%d libraries are missing one or more dependencies:" % len(dmissing))
+        for k in sorted(dmissing):
+            out("\t%s depends on missing libraries:" % k)
+            for m in dmissing[k]:
+                out("\t\t%s" % m)
