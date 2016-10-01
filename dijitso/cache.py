@@ -24,7 +24,8 @@ import uuid
 import os
 import re
 import ctypes
-from dijitso.system import (make_dirs, try_delete_file, try_copy_file,
+import glob
+from dijitso.system import (ldd, make_dirs, try_delete_file, try_copy_file,
                             gzip_file, read_file, lockfree_move_file)
 from dijitso.log import debug, error, warning
 
@@ -176,7 +177,6 @@ def analyse_load_error(e, lib_filename, cache_params):
     else:
         mlibname = lib_filename
 
-    bar = "*"*70
     if lib_filename != mlibname:
         # Message mentions some other dijitso library,
         # double check if this other file exists
@@ -184,11 +184,11 @@ def analyse_load_error(e, lib_filename, cache_params):
         if os.path.exists(mlibname):
             emsg = ("dijitso failed to load library:\n\t%s\n"
                     "but dependency file exists:\n\t%s\nerror is:\n\t%s" % (
-                    lib_filename, mlibname, str(e)))
+                        lib_filename, mlibname, str(e)))
         else:
             emsg = ("dijitso failed to load library:\n\t%s\n"
                     "dependency file missing:\n\t%s\nerror is:\n\t%s" % (
-                    lib_filename, mlibname, str(e)))
+                        lib_filename, mlibname, str(e)))
     else:
         # Message doesn't mention another dijitso library,
         # double check if library file we tried to load exists
@@ -343,8 +343,7 @@ def get_dijitso_dependencies(libname, cache_params):
 # TODO: Use this in command-line tools?
 def check_cache_integrity(cache_params):
     "Check dijitso cache integrity."
-    visited = set()
-    libnames = set(glob(cache_params["lib_prefix"] + "*" + cache_params["lib_postfix"]))
+    libnames = set(glob.glob(cache_params["lib_prefix"] + "*" + cache_params["lib_postfix"]))
     dmissing = {}
     for libname in libnames:
         dlibs = get_dijitso_dependencies(libname, cache_params)
@@ -353,7 +352,7 @@ def check_cache_integrity(cache_params):
         for k in dlibs:
             if k not in missing:
                 # ldd thinks file is missing but it's there, linker issue?
-               pass
+                pass
         if missing:
             dmissing[libname] = sorted(missing)
     return dmissing

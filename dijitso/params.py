@@ -85,12 +85,12 @@ def default_cache_params():
         lib_postfix=".so",
         lib_prefix="lib",
         lib_basename="dijitso-",
-        )
+    )
     return p
 
 
 def default_cxx_flags():
-    return ("-shared", "-fPIC", "-std=c++11") #"-fvisibility=hidden",
+    return ("-shared", "-fPIC", "-std=c++11")  # "-fvisibility=hidden",
 
 
 def default_cxx_debug_flags():
@@ -119,7 +119,7 @@ def default_build_params():
         rpath_dirs=(),
         libs=(),
         debug=False,
-        )
+    )
     return p
 
 

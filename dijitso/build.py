@@ -24,8 +24,6 @@ import tempfile
 import os
 import sys
 
-from distutils.ccompiler import new_compiler
-
 from dijitso.system import get_status_output, lockfree_move_file, make_dirs, make_executable
 from dijitso.log import info, debug
 from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
@@ -80,7 +78,6 @@ def make_compile_command(src_filename, lib_filename, dependencies,
     # Create library names for all dependencies and additional given libs
     deplibs = tuple(create_libname(depsig, cache_params)
                     for depsig in dependencies)
-    libs = deplibs + tuple(build_params["libs"])
 
     # Get compiler name
     args = [build_params["cxx"]]
@@ -100,7 +97,8 @@ def make_compile_command(src_filename, lib_filename, dependencies,
     # OSX specific:
     if sys.platform == "darwin":
         full_lib_filename = os.path.join(cache_params["cache_dir"],
-            cache_params["lib_dir"], os.path.basename(lib_filename))
+                                         cache_params["lib_dir"],
+                                         os.path.basename(lib_filename))
         args.append("-Wl,-install_name,%s" % full_lib_filename)
 
     # The output library
