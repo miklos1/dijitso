@@ -26,11 +26,12 @@ import sys
 
 from dijitso.system import get_status_output, lockfree_move_file, make_dirs, make_executable
 from dijitso.log import info, debug
-from dijitso.cache import make_lib_dir, make_inc_dir, store_textfile
+from dijitso.cache import ensure_dirs, make_lib_dir, make_inc_dir, store_textfile
+from dijitso.cache import create_fail_dir_path
 from dijitso.cache import create_lib_filename, create_lib_basename, create_libname
 from dijitso.cache import create_src_filename, create_src_basename
 from dijitso.cache import create_inc_filename, create_inc_basename
-from dijitso.cache import ensure_dirs, create_fail_dir_path
+from dijitso.cache import create_log_filename
 from dijitso.cache import compress_source_code
 
 
@@ -160,7 +161,7 @@ def build_shared_library(signature, header, source, dependencies, params):
             assert os.path.exists(os.path.dirname(inc_filename))
             lockfree_move_file(temp_inc_filename, inc_filename)
         else:
-            inc_filename = "<no header>"
+            inc_filename = None
 
         # Compress or delete source code based on params
         temp_src_filename = compress_source_code(temp_src_filename, cache_params)
@@ -171,11 +172,25 @@ def build_shared_library(signature, header, source, dependencies, params):
             assert os.path.exists(os.path.dirname(src_filename))
             lockfree_move_file(temp_src_filename, src_filename)
         else:
-            src_filename = "<no source>"
+            src_filename = None
 
-        debug("Compilation succeeded. Header, source, "
-              "and library have been written to: %s, %s, %s"
-              % (inc_filename, src_filename, lib_filename))
+        # Write compiler command and output to log file
+        if cache_params["enable_build_log"]:
+            # Recreate compiler command without the tempdir
+            cmd = make_compile_command(src_basename, lib_basename,
+                                       dependencies, build_params, cache_params)
+            log_contents = "%s\n\n%s" % (" ".join(cmd), output)
+            log_filename = create_log_filename(signature, cache_params)
+            assert os.path.exists(os.path.dirname(log_filename))
+            store_textfile(log_filename, log_contents)
+        else:
+            log_filename = None
+
+        files = sorted(set((inc_filename, src_filename,
+                            lib_filename, log_filename))
+                           - set((None,)))
+        debug("Compilation succeeded. Files written to cache:\n"
+              + "\n".join(files))
 
     else:
         # Create filenames in a local directory to store files for reproducing failure
