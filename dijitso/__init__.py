@@ -31,3 +31,6 @@ from dijitso.params import validate_params
 from dijitso.jit import jit
 from dijitso.jit import extract_factory_function
 from dijitso.log import set_log_level
+
+# Import main function, entry point to script
+from dijitso.__main__ import main

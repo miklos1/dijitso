@@ -88,8 +88,12 @@ def build_parsers(commands, args):
     return top_parser, subparsers, cmd_parsers
 
 
-def main(*args):
+def main(args=None):
     """This is the commandline tool for the python module dijitso."""
+
+    if args is None:
+        args = sys.argv[1:]
+
     # Build subparsers for each command
     commands, cmd_args = build_commands(vars(cmd_namespace))
     top_parser, subparsers, cmd_parsers = build_parsers(commands, cmd_args)
@@ -110,4 +114,4 @@ def main(*args):
 
 
 if __name__ == "__main__":
-   sys.exit(main(*sys.argv[1:]))
+   sys.exit(main())
