@@ -43,6 +43,12 @@ from dijitso.cache import extract_files, extract_function
 from dijitso.system import read_file_lines
 
 
+def parse_categories(categories):
+    if categories == "all":
+        return ("inc", "src", "lib", "log")
+    return categories.split(",")
+
+
 def args_version(parser):
     pass
 
@@ -86,8 +92,8 @@ def cmd_config(args, params):
 
 
 def args_show(parser):
-    parser.add_argument("--categories", default="inc,src,lib,log",
-                        help="comma separated list to enable inc,src,lib,log")
+    parser.add_argument("--categories", default="all",
+                        help="comma separated list to enable file types (inc,src,lib,log)")
     parser.add_argument("--no-summary", action="store_true",
                         help="don't show summary")
     parser.add_argument("--files", action="store_true",
@@ -103,7 +109,7 @@ def cmd_show(args, params):
     summary = not args.no_summary
     files = args.files
     signatures = args.signatures
-    categories = args.categories.split(",")
+    categories = parse_categories(args.categories)
 
     gc = glob_cache(cache_params, categories=categories)
 
@@ -123,7 +129,7 @@ def cmd_show(args, params):
 
 def args_clean(parser):
     parser.add_argument("--categories", default="inc,src,lib,log",
-                        help="comma separated list to enable inc,src,lib,log")
+                        help="comma separated list to enable file types (inc,src,lib,log)")
 
 
 def cmd_clean(args, params):
@@ -131,7 +137,7 @@ def cmd_clean(args, params):
     cache_params = params["cache"]
 
     dryrun = args.dry_run
-    categories = args.categories.split(",")
+    categories = parse_categories(args.categories)
 
     clean_cache(cache_params, dryrun=dryrun, categories=categories)
     return 0
@@ -139,7 +145,7 @@ def cmd_clean(args, params):
 
 def args_grep(parser):
     parser.add_argument("--categories", default="inc,src",
-                        help="comma separated list to enable inc,src,lib,log")
+                        help="comma separated list to enable file types (inc,src,lib,log)")
     parser.add_argument("--pattern", default="",
                         help="line search pattern")
     parser.add_argument("--regexmode", action="store_true",
@@ -150,6 +156,8 @@ def args_grep(parser):
                         help="show only match line count for each file")
     parser.add_argument("--filesonly", action="store_true",
                         help="show only filenames with matches")
+    parser.add_argument("--signature", default="",
+                        help="look for module with this signature (default all)")
 
 
 def cmd_grep(args, params):
@@ -158,17 +166,19 @@ def cmd_grep(args, params):
 
     # Get command-line arguments
     pattern = args.pattern
+    signature = args.signature
     regexmode = args.regexmode
     linenumbers = args.linenumbers
     countonly = args.countonly
     filesonly = args.filesonly
-    categories = args.categories.split(",")
+    categories = parse_categories(args.categories)
 
     if not regexmode:
         pattern = ".*(" + pattern + ").*"
     regex = re.compile(pattern)
     allmatches = grep_cache(regex, cache_params,
                             linenumbers=linenumbers, countonly=countonly,
+                            signature=signature,
                             categories=categories)
     if filesonly:
         print("\n".join(sorted(allmatches)))
@@ -186,7 +196,7 @@ def cmd_grep(args, params):
 
 def args_grepfunction(parser):
     parser.add_argument("--categories", default="src",
-                        help="comma separated list to enable inc,src,lib,log")
+                        help="comma separated list to enable file types (inc,src,lib,log)")
     parser.add_argument("--name", default="",
                         help="function name to search for")
     parser.add_argument("--signature", default="",
@@ -201,7 +211,7 @@ def cmd_grepfunction(args, params):
 
     name = args.name
     signature = args.signature
-    categories = args.categories.split(",")
+    categories = parse_categories(args.categories)
     no_body = args.no_body
 
     pattern = ".*(" + name + ")[ ]*\((.*)"
@@ -230,7 +240,7 @@ def cmd_grepfunction(args, params):
 
 def args_checkout(parser):
     parser.add_argument("--categories", default="inc,src,lib,log",
-                        help="comma separated list to enable inc,src,lib,log")
+                        help="comma separated list to enable file types (inc,src,lib,log)")
     parser.add_argument("--signature",
                         help="module signature (required)")
 
@@ -240,7 +250,7 @@ def cmd_checkout(args, params):
     cache_params = params["cache"]
 
     signature = args.signature
-    categories = args.categories.split(",")
+    categories = parse_categories(args.categories)
 
     prefix = "jitcheckout-"
     path = os.curdir
