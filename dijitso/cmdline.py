@@ -39,7 +39,8 @@ import re
 from dijitso import __version__
 from dijitso.cache import glob_cache, grep_cache, clean_cache
 from dijitso.cache import extract_lib_signatures
-from dijitso.cache import extract_files
+from dijitso.cache import extract_files, extract_function
+from dijitso.system import read_file_lines
 
 
 def args_version(parser):
@@ -188,10 +189,10 @@ def args_grepfunction(parser):
                         help="comma separated list to enable inc,src,lib,log")
     parser.add_argument("--name", default="",
                         help="function name to search for")
-    # parser.add_argument("--signature", default="",
-    #                    help="restrict to module with this signature")
-    # parser.add_argument("--no-body", action="store_true",
-    #                    help="restrict to module with this signature")
+    parser.add_argument("--signature", default="",
+                        help="restrict to module with this signature")
+    parser.add_argument("--no-body", action="store_true",
+                        help="don't show function bodies")
 
 
 def cmd_grepfunction(args, params):
@@ -201,7 +202,7 @@ def cmd_grepfunction(args, params):
     name = args.name
     # signature = args.signature
     categories = args.categories.split(",")
-    no_body = True  # args.no_body
+    no_body = args.no_body
 
     pattern = ".*(" + name + ")[ ]*\((.*)"
     regex = re.compile(pattern)
@@ -212,13 +213,17 @@ def cmd_grepfunction(args, params):
     for fn in sorted(allmatches):
         print("File '%s' matches:" % (fn,))
         if no_body:
+            # Just print signature lines
             for i, line in allmatches[fn]:
                 print("%5d: %s" % (i, line))
         else:
-            # FIXME: print function bodies
+            # Print function bodies
+            lines = read_file_lines(fn)
             for i, line in allmatches[fn]:
-                print("%5d: %s" % (i, line))
-
+                print("%s:%d" % (fn, i))
+                assert name in lines[i]
+                print(extract_function(lines[i:]))
+                print()
     return 0
 
 

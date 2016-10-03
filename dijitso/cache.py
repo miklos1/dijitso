@@ -126,6 +126,40 @@ def grep_cache(regex, cache_params,
     return allmatches
 
 
+def extract_function(lines):
+    "Extract function code starting at first line of lines."
+    n = len(lines)
+
+    # Function starts at line 0 by assumption
+    begin = 0
+
+    # Worst case body range
+    body_begin = begin
+    body_end = n
+
+    # Body starts at first {
+    for i in range(begin, n):
+        if "{" in lines[i]:
+            body_begin = i
+            break
+
+    # Body ends when {} are balanced back to 0
+    braces = 0
+    for i in range(body_begin, n):
+        if "{" in lines[i]:
+            braces += 1
+        if "}" in lines[i]:
+            braces -= 1
+        if braces == 0:
+            body_end = i
+            break
+
+    # Include the last line in range
+    end = body_end + 1
+    sublines = lines[begin:end]
+    return "".join(sublines)
+
+
 def _create_basename(foo, signature, cache_params):
     return "".join((cache_params.get(foo + "_prefix", ""),
                     cache_params.get(foo + "_basename", ""),
