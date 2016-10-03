@@ -24,21 +24,13 @@ tarball = None
 if 'dev' not in version:
     tarball = url + "downloads/%s-%s.tar.gz" % (module_name, version)
 
-script_names = ("dijitso-version", "dijitso-cache")
+script_names = ("dijitso",)
+entry_points = {'console_scripts': ['dijitso = dijitso.__main__:main']}
 
 scripts = [join("scripts", script) for script in script_names]
 man_files = [join("doc", "man", "man1", "%s.1.gz" % (script,)) for script in script_names]
 data_files = [(join("share", "man", "man1"), man_files)]
 
-if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
-    # In the Windows command prompt we can't execute Python scripts
-    # without a .py extension. A solution is to create batch files
-    # that runs the different scripts.
-    for script in scripts:
-        batch_file = script + ".bat"
-        with open(batch_file, "w") as f:
-            f.write(sys.excecutable + ' "%%~dp0\%s" %%*\n' % split(script)[1])
-        scripts.append(batch_file)
 
 CLASSIFIERS = """\
 Development Status :: 5 - Production/Stable
@@ -72,7 +64,8 @@ setup(name="dijitso",
       url=url,
       download_url=tarball,
       classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-      scripts=scripts,
+      #scripts=scripts,  # Using entry_points instead
+      entry_points=entry_points,
       packages=["dijitso"],
       package_dir={'dijitso': 'dijitso'},
       install_requires=requires,

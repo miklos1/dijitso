@@ -38,11 +38,20 @@ import re
 import sys
 from glob import glob
 
+from dijitso import __version__
 from dijitso.cache import glob_cache, grep_cache, clean_cache
 from dijitso.cache import create_lib_filename
 from dijitso.cache import extract_lib_signatures
 from dijitso.cache import extract_files
 from dijitso.system import try_delete_file
+
+
+def args_version(parser):
+    pass
+
+def cmd_version(args, params):
+    "print dijitso version"
+    print(__version__)
 
 
 def args_config(parser):
