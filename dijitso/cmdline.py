@@ -85,10 +85,14 @@ def cmd_config(args, params):
 
 
 def args_show(parser):
-    parser.add_argument("--categories", default="inc,src,lib,log", help="comma separated list to enable inc,src,lib,log")
-    parser.add_argument("--no-summary", action="store_true", help="don't show summary")
-    parser.add_argument("--files", action="store_true", help="show file lists")
-    parser.add_argument("--signatures", action="store_true", help="show library signatures")
+    parser.add_argument("--categories", default="inc,src,lib,log",
+                        help="comma separated list to enable inc,src,lib,log")
+    parser.add_argument("--no-summary", action="store_true",
+                        help="don't show summary")
+    parser.add_argument("--files", action="store_true",
+                        help="show file lists")
+    parser.add_argument("--signatures", action="store_true",
+                        help="show library signatures")
 
 
 def cmd_show(args, params):
@@ -117,7 +121,8 @@ def cmd_show(args, params):
 
 
 def args_clean(parser):
-    parser.add_argument("--categories", default="inc,src,lib,log", help="comma separated list to enable inc,src,lib,log")
+    parser.add_argument("--categories", default="inc,src,lib,log",
+                        help="comma separated list to enable inc,src,lib,log")
 
 
 def cmd_clean(args, params):
@@ -132,12 +137,18 @@ def cmd_clean(args, params):
 
 
 def args_grep(parser):
-    parser.add_argument("--categories", default="inc,src", help="comma separated list to enable inc,src,lib,log")
-    parser.add_argument("--pattern", default="", help="line search pattern")
-    parser.add_argument("--regexmode", action="store_true", help="pattern is a regular expression (python style)")
-    parser.add_argument("--linenumbers", action="store_true", help="show linenumbers on matches")
-    parser.add_argument("--countonly", action="store_true", help="show only match line count for each file")
-    parser.add_argument("--filesonly", action="store_true", help="show only filenames with matches")
+    parser.add_argument("--categories", default="inc,src",
+                        help="comma separated list to enable inc,src,lib,log")
+    parser.add_argument("--pattern", default="",
+                        help="line search pattern")
+    parser.add_argument("--regexmode", action="store_true",
+                        help="pattern is a regular expression (python style)")
+    parser.add_argument("--linenumbers", action="store_true",
+                        help="show linenumbers on matches")
+    parser.add_argument("--countonly", action="store_true",
+                        help="show only match line count for each file")
+    parser.add_argument("--filesonly", action="store_true",
+                        help="show only filenames with matches")
 
 
 def cmd_grep(args, params):
@@ -173,10 +184,14 @@ def cmd_grep(args, params):
 
 
 def args_grepfunction(parser):
-    parser.add_argument("--categories", default="src", help="comma separated list to enable inc,src,lib,log")
-    parser.add_argument("--name", default="", help="function name to search for")
-    # parser.add_argument("--signature", default="", help="restrict to module with this signature")
-    # parser.add_argument("--no-body", action="store_true", help="restrict to module with this signature")
+    parser.add_argument("--categories", default="src",
+                        help="comma separated list to enable inc,src,lib,log")
+    parser.add_argument("--name", default="",
+                        help="function name to search for")
+    # parser.add_argument("--signature", default="",
+    #                    help="restrict to module with this signature")
+    # parser.add_argument("--no-body", action="store_true",
+    #                    help="restrict to module with this signature")
 
 
 def cmd_grepfunction(args, params):
@@ -208,8 +223,10 @@ def cmd_grepfunction(args, params):
 
 
 def args_checkout(parser):
-    parser.add_argument("--categories", default="inc,src,lib,log", help="comma separated list to enable inc,src,lib,log")
-    parser.add_argument("--signature", default="", help="module signature")
+    parser.add_argument("--categories", default="inc,src,lib,log",
+                        help="comma separated list to enable inc,src,lib,log")
+    parser.add_argument("--signature", default="",
+                        help="module signature")
 
 
 def cmd_checkout(args, params):

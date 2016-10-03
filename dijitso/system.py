@@ -227,7 +227,8 @@ def lockfree_move_file(src, dst):
         with open(dst) as f:
             d = f.read()
         if s != d:
-            warning("Not overwriting existing file with different contents:\nsrc: %s\ndst: %s" % (src, dst))
+            warning("Not overwriting existing file with different contents:\n"
+                    "src: %s\ndst: %s" % (src, dst))
         else:
             try_delete_file(src)
         return

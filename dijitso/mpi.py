@@ -125,7 +125,8 @@ def create_node_roots_comm(comm, node_root):
 
 
 def create_comms_and_role_root(comm, node_comm, node_root):
-    """Approach: global root builds and sends binary to node roots, everyone waits on their node group."""
+    """Approach: global root builds and sends binary to node roots,
+    everyone waits on their node group."""
     copy_comm = create_node_roots_comm(comm, node_root)
     wait_comm = node_comm
     if comm.rank == 0:

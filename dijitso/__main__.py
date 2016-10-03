@@ -47,9 +47,12 @@ def build_commands(cmd_namespace):
 
 def add_top_arguments(parser):
     "Add arguments to top level parser."
-    parser.add_argument("--verbose", "-v", default=False, help="set logging level")
-    parser.add_argument("--cache-dir", "-r", default=None, help="use non-default cache root path")
-    parser.add_argument("--dry-run", "-n", default=False, help="only show what would be done, don't modify filesystem")
+    parser.add_argument("--verbose", "-v", default=False,
+                        help="set logging level")
+    parser.add_argument("--cache-dir", "-r", default=None,
+                        help="use non-default cache root path")
+    parser.add_argument("--dry-run", "-n", default=False,
+                        help="only show what would be done, don't modify filesystem")
 
 
 def extract_params_from_args(args):
