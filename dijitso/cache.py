@@ -100,13 +100,20 @@ def glob_cache(cache_params, categories=("inc", "src", "lib", "log")):
 
 def grep_cache(regex, cache_params,
                linenumbers=False, countonly=False,
+               signature=None
                categories=("inc", "src", "log")):
     "Search through files in cache for a pattern."
     allmatches = {}
     gc = glob_cache(cache_params, categories=categories)
     for category in categories:
         for fn in gc.get(category, ()):
+            # Skip non-matches if specific signature is specified
+            if signature is not None and signature not in fn:
+                continue
+
+            # TODO: If category is "lib", use ldd or otool
             lines = read_file_lines(fn)
+
             if countonly:
                 matches = 0
             else:

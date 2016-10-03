@@ -190,7 +190,7 @@ def args_grepfunction(parser):
     parser.add_argument("--name", default="",
                         help="function name to search for")
     parser.add_argument("--signature", default="",
-                        help="restrict to module with this signature")
+                        help="look for module with this signature (default all)")
     parser.add_argument("--no-body", action="store_true",
                         help="don't show function bodies")
 
@@ -200,7 +200,7 @@ def cmd_grepfunction(args, params):
     cache_params = params["cache"]
 
     name = args.name
-    # signature = args.signature
+    signature = args.signature
     categories = args.categories.split(",")
     no_body = args.no_body
 
@@ -209,6 +209,7 @@ def cmd_grepfunction(args, params):
 
     allmatches = grep_cache(regex, cache_params,
                             linenumbers=True, countonly=False,
+                            signature=signature,
                             categories=categories)
     for fn in sorted(allmatches):
         print("File '%s' matches:" % (fn,))
@@ -230,8 +231,8 @@ def cmd_grepfunction(args, params):
 def args_checkout(parser):
     parser.add_argument("--categories", default="inc,src,lib,log",
                         help="comma separated list to enable inc,src,lib,log")
-    parser.add_argument("--signature", default="",
-                        help="module signature")
+    parser.add_argument("--signature",
+                        help="module signature (required)")
 
 
 def cmd_checkout(args, params):
