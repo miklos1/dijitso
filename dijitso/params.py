@@ -93,7 +93,7 @@ def default_cache_params():
 def default_cxx_flags():
     "Default C++ flags for all build modes."
     # Dropped because of some symbol sharing across dependent modules from ffc:
-    #"-fvisibility=hidden",
+    # "-fvisibility=hidden",
     return ("-Wall", "-shared", "-fPIC", "-std=c++11")
 
 

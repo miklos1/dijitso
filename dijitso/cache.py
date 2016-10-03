@@ -77,7 +77,8 @@ def extract_lib_signatures(cache_params):
     return sigs
 
 
-def clean_cache(cache_params, dryrun=True, categories=("inc","src","lib","log")):
+def clean_cache(cache_params, dryrun=True,
+                categories=("inc", "src", "lib", "log")):
     "Delete files from cache."
     gc = glob_cache(cache_params, categories=categories)
     for category in gc:
@@ -112,7 +113,6 @@ def grep_cache(regex, cache_params,
                 matches = []
             for i, line in enumerate(lines):
                 m = regex.match(line)
-                #print(bool(m), line)
                 if m:
                     if countonly:
                         matches += 1
@@ -175,7 +175,8 @@ def create_lib_filename(signature, cache_params):
 
 
 def create_libname(signature, cache_params):
-    "Create library name based on signature and params, without path, prefix 'lib', or extension '.so'."
+    """Create library name based on signature and params,
+    without path, prefix 'lib', or extension '.so'."""
     return cache_params["lib_basename"] + signature
 
 
@@ -249,7 +250,8 @@ def analyse_load_error(e, lib_filename, cache_params):
     if m:
         # Found libname mentioned in message
         mlibname = m.group(1)
-        mlibname = os.path.join(cache_params["cache_dir"], cache_params["lib_dir"], mlibname)
+        mlibname = os.path.join(cache_params["cache_dir"],
+                                cache_params["lib_dir"], mlibname)
     else:
         mlibname = lib_filename
 

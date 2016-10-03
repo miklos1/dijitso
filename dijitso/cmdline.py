@@ -35,19 +35,16 @@ from __future__ import print_function
 
 import os
 import re
-import sys
-from glob import glob
 
 from dijitso import __version__
 from dijitso.cache import glob_cache, grep_cache, clean_cache
-from dijitso.cache import create_lib_filename
 from dijitso.cache import extract_lib_signatures
 from dijitso.cache import extract_files
-from dijitso.system import try_delete_file
 
 
 def args_version(parser):
     pass
+
 
 def cmd_version(args, params):
     "print dijitso version"
@@ -56,6 +53,7 @@ def cmd_version(args, params):
 
 def args_config(parser):
     parser.add_argument("--key", default="", help="specific key to show (e.g. build.cxxflags)")
+
 
 def cmd_config(args, params):
     "show configuration"
@@ -92,11 +90,11 @@ def args_show(parser):
     parser.add_argument("--files", action="store_true", help="show file lists")
     parser.add_argument("--signatures", action="store_true", help="show library signatures")
 
+
 def cmd_show(args, params):
     "show lists of files in cache"
     cache_params = params["cache"]
 
-    verbose = args.verbose
     summary = not args.no_summary
     files = args.files
     signatures = args.signatures
@@ -109,17 +107,18 @@ def cmd_show(args, params):
         print("\n".join("\t" + s for s in sorted(sigs)))
     if files:
         for cat in categories:
-            print("\n".join("\t" + f for f in sorted(gc.get(cat,()))))
+            print("\n".join("\t" + f for f in sorted(gc.get(cat, ()))))
     if summary:
         print("dijitso cache summary (number of cached files):")
         for cat in categories:
-            print("%s: %d" % (cat, len(gc.get(cat,()))))
+            print("%s: %d" % (cat, len(gc.get(cat, ()))))
         # TODO: Add summary of file sizes
     return 0
 
 
 def args_clean(parser):
     parser.add_argument("--categories", default="inc,src,lib,log", help="comma separated list to enable inc,src,lib,log")
+
 
 def cmd_clean(args, params):
     "remove files from cache"
@@ -139,6 +138,7 @@ def args_grep(parser):
     parser.add_argument("--linenumbers", action="store_true", help="show linenumbers on matches")
     parser.add_argument("--countonly", action="store_true", help="show only match line count for each file")
     parser.add_argument("--filesonly", action="store_true", help="show only filenames with matches")
+
 
 def cmd_grep(args, params):
     "grep content of header and source file(s) in cache"
@@ -175,17 +175,18 @@ def cmd_grep(args, params):
 def args_grepfunction(parser):
     parser.add_argument("--categories", default="src", help="comma separated list to enable inc,src,lib,log")
     parser.add_argument("--name", default="", help="function name to search for")
-    #parser.add_argument("--signature", default="", help="restrict to module with this signature")
-    #parser.add_argument("--no-body", action="store_true", help="restrict to module with this signature")
+    # parser.add_argument("--signature", default="", help="restrict to module with this signature")
+    # parser.add_argument("--no-body", action="store_true", help="restrict to module with this signature")
+
 
 def cmd_grepfunction(args, params):
     "search for function name in source files in cache"
     cache_params = params["cache"]
 
     name = args.name
-    #signature = args.signature
+    # signature = args.signature
     categories = args.categories.split(",")
-    no_body = True #args.no_body
+    no_body = True  # args.no_body
 
     pattern = ".*(" + name + ")[ ]*\((.*)"
     regex = re.compile(pattern)
@@ -210,8 +211,10 @@ def args_checkout(parser):
     parser.add_argument("--categories", default="inc,src,lib,log", help="comma separated list to enable inc,src,lib,log")
     parser.add_argument("--signature", default="", help="module signature")
 
+
 def cmd_checkout(args, params):
     "copy files from cache to a directory"
+    cache_params = params["cache"]
 
     signature = args.signature
     categories = args.categories.split(",")

@@ -2,10 +2,9 @@
 from __future__ import print_function
 
 from setuptools import setup
-from os.path import join, split
+from os.path import join
 import re
 import sys
-import platform
 import codecs
 
 module_name = "dijitso"
@@ -64,7 +63,7 @@ setup(name="dijitso",
       url=url,
       download_url=tarball,
       classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-      #scripts=scripts,  # Using entry_points instead
+      # scripts=scripts,  # Using entry_points instead
       entry_points=entry_points,
       packages=["dijitso"],
       package_dir={'dijitso': 'dijitso'},

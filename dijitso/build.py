@@ -186,12 +186,11 @@ def build_shared_library(signature, header, source, dependencies, params):
         else:
             log_filename = None
 
-        files = sorted(set((inc_filename, src_filename,
-                            lib_filename, log_filename))
-                           - set((None,)))
-        debug("Compilation succeeded. Files written to cache:\n"
-              + "\n".join(files))
-
+        files = set((inc_filename, src_filename, lib_filename, log_filename))
+        files = files - set((None,))
+        files = sorted(files)
+        debug("Compilation succeeded. Files written to cache:\n" +
+              "\n".join(files))
     else:
         # Create filenames in a local directory to store files for reproducing failure
         fail_dir = create_fail_dir_path(signature, cache_params)
