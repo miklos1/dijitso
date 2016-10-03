@@ -25,7 +25,6 @@ import uuid
 import os
 import re
 import ctypes
-import glob
 from dijitso.system import ldd
 from dijitso.system import make_dirs, lockfree_move_file
 from dijitso.system import try_delete_file, try_copy_file
@@ -420,7 +419,7 @@ def get_dijitso_dependencies(libname, cache_params):
 # TODO: Use this in command-line tools?
 def check_cache_integrity(cache_params):
     "Check dijitso cache integrity."
-    libnames = set(glob.glob(cache_params["lib_prefix"] + "*" + cache_params["lib_postfix"]))
+    libnames = set(glob(cache_params["lib_prefix"] + "*" + cache_params["lib_postfix"]))
     dmissing = {}
     for libname in libnames:
         dlibs = get_dijitso_dependencies(libname, cache_params)

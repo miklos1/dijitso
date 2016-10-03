@@ -11,4 +11,7 @@ build/
 test/.cache/
 test/.dijitso/
 test/.test_*
+test/report*.xml
+test/htmlcov*
+test/output*
 doc/sphinx/source/api-doc
