@@ -100,7 +100,7 @@ def glob_cache(cache_params, categories=("inc", "src", "lib", "log")):
 
 def grep_cache(regex, cache_params,
                linenumbers=False, countonly=False,
-               signature=None
+               signature=None,
                categories=("inc", "src", "log")):
     "Search through files in cache for a pattern."
     allmatches = {}
@@ -111,23 +111,38 @@ def grep_cache(regex, cache_params,
             if signature is not None and signature not in fn:
                 continue
 
-            # TODO: If category is "lib", use ldd or otool
-            lines = read_file_lines(fn)
-
             if countonly:
                 matches = 0
             else:
                 matches = []
-            for i, line in enumerate(lines):
-                m = regex.match(line)
-                if m:
-                    if countonly:
-                        matches += 1
-                    else:
-                        line = line.rstrip("\n\r")
-                        if linenumbers:
-                            line = (i, line)
-                        matches.append(line)
+
+            if category == "lib":
+                # If category is "lib", use ldd
+                # TODO: on mac need to use otool
+                libs = ldd(fn)
+                for k, libpath in sorted(libs.items()):
+                    if not libpath:
+                        continue
+                    m = regex.match(libpath)
+                    if m:
+                        if countonly:
+                            matches += 1
+                        else:
+                            line = "%s => %s" % (k, libpath)
+                            matches.append(line)
+            else:
+                lines = read_file_lines(fn)
+                for i, line in enumerate(lines):
+                    m = regex.match(line)
+                    if m:
+                        if countonly:
+                            matches += 1
+                        else:
+                            line = line.rstrip("\n\r")
+                            if linenumbers:
+                                line = (i, line)
+                            matches.append(line)
+
             if matches:
                 allmatches[fn] = matches
     return allmatches

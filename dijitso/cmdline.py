@@ -176,11 +176,11 @@ def cmd_grep(args, params):
         print("\n".join("%s: %d" % (k, v) for k, v in sorted(allmatches.items())))
     else:
         for fn in sorted(allmatches):
-            print("File '%s' matches:" % (fn,))
+            print("\nFile '%s' matches:" % (fn,))
             if linenumbers:
                 print("\n".join("%5d:\t%s" % line for line in allmatches[fn]))
             else:
-                print("\n".join(allmatches[fn]))
+                print("\n".join("\t" + line for line in allmatches[fn]))
     return 0
 
 
@@ -212,9 +212,9 @@ def cmd_grepfunction(args, params):
                             signature=signature,
                             categories=categories)
     for fn in sorted(allmatches):
-        print("File '%s' matches:" % (fn,))
         if no_body:
             # Just print signature lines
+            print("\nFile '%s' matches:" % (fn,))
             for i, line in allmatches[fn]:
                 print("%5d: %s" % (i, line))
         else:
