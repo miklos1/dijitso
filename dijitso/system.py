@@ -20,6 +20,8 @@
 
 from __future__ import unicode_literals
 
+from six import string_types
+
 import os
 import sys
 import errno
@@ -52,7 +54,7 @@ else:
 
 def get_status_output(cmd, input=None, cwd=None, env=None):
     """Replacement for commands.getstatusoutput which does not work on Windows (or Python 3)."""
-    if isinstance(cmd, str):
+    if isinstance(cmd, string_types):
         cmd = cmd.strip().split()
     pipe = subprocess.Popen(cmd, shell=False, cwd=cwd, env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

@@ -18,6 +18,8 @@
 
 from __future__ import unicode_literals
 
+from six import string_types
+
 import logging
 
 __all__ = ['set_log_level', 'get_logger', 'get_log_handler', 'set_log_handler']
@@ -48,7 +50,7 @@ def set_log_level(level):
     """Set verbosity of logging. Argument is int or one of "INFO", "WARNING",
     "ERROR", or "DEBUG".
     """
-    if isinstance(level, str):
+    if isinstance(level, string_types):
         level = level.upper()
         assert level in ("INFO", "WARNING", "ERROR", "DEBUG")
         level = getattr(logging, level)
