@@ -228,7 +228,7 @@ def move_file(srcfilename, dstfilename):
     assert os.path.exists(dstfilename)
 
 
-def lockfree_move_file(src, dst):
+def lockfree_move_file(src, dst, overwrite=False):
     """Lockfree and portable nfs safe file move operation.
 
     Taken from textual description at
@@ -242,10 +242,14 @@ def lockfree_move_file(src, dst):
             s = f.read()
         with io.open(dst, "rb") as f:
             d = f.read()
-        if s != d:
+        differ = s != d
+        if differ and not overwrite:
             warning("Not overwriting existing file with different contents:\n"
                     "src: %s\ndst: %s" % (src, dst))
         else:
+            if differ:
+                warning("Overwriting existing file with different contents:\n"
+                        "src: %s\ndst: %s" % (src, dst))
             try_delete_file(src)
         return
 
