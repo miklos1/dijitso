@@ -21,6 +21,7 @@
 from __future__ import unicode_literals
 
 from glob import glob
+import io
 import uuid
 import os
 import re
@@ -412,7 +413,13 @@ def store_textfile(filename, content):
     tmp_filename = filename + "." + str(ui)
 
     # Write the text to a temporary file
-    with open(tmp_filename, "w") as f:
+    if isinstance(content, bytes):
+        # content is already bytes, write raw
+        f = io.open(tmp_filename, "wb")
+    else:
+        f = io.open(tmp_filename, "w", encoding="utf8")
+
+    with f:
         f.write(content)
 
     # Safely move file to target filename
