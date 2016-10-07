@@ -181,12 +181,7 @@ def build_shared_library(signature, header, source, dependencies, params):
             cmd = make_compile_command(src_basename, lib_basename,
                                        dependencies, build_params, cache_params)
 
-            # Make sure we are working with unicode
-            for i, e in enumerate(cmd):
-                if isinstance(e, bytes):
-                    cmd[i] = e.decode('utf8', 'replace')
-
-            log_contents = u"%s\n\n%s" % (" ".join(cmd), output)
+            log_contents = "%s\n\n%s" % (" ".join(cmd), output)
             log_filename = create_log_filename(signature, cache_params)
             assert os.path.exists(os.path.dirname(log_filename))
             store_textfile(log_filename, log_contents)

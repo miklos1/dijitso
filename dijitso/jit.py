@@ -25,6 +25,7 @@ import numpy
 
 from dijitso.log import error
 from dijitso.params import validate_params
+from dijitso.params import as_utf8
 from dijitso.cache import lookup_lib, load_library
 from dijitso.cache import write_library_binary, read_library_binary
 from dijitso.build import build_shared_library
