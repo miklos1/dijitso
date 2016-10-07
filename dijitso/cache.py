@@ -21,12 +21,11 @@
 from __future__ import unicode_literals
 
 from glob import glob
-import uuid
 import os
 import re
 import ctypes
 from dijitso.system import ldd
-from dijitso.system import make_dirs, lockfree_move_file
+from dijitso.system import make_dirs
 from dijitso.system import try_delete_file, try_copy_file
 from dijitso.system import gzip_file, gunzip_file
 from dijitso.system import read_textfile, store_textfile

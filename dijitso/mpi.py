@@ -65,7 +65,7 @@ def discover_path_access_ranks(comm, path):
 
     # Write the rank of this process to a filename
     filename = basename + str(comm.rank)
-    with io.open(filename, "wb") as f:
+    with io.open(filename, "wb"):
         pass
 
     # Wait for all writes to take place. Don't know how robust this is
