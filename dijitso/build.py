@@ -24,9 +24,10 @@ import tempfile
 import os
 import sys
 
-from dijitso.system import get_status_output, lockfree_move_file, make_dirs, make_executable
+from dijitso.system import get_status_output, lockfree_move_file
+from dijitso.system import make_dirs, make_executable, store_textfile
 from dijitso.log import info, debug
-from dijitso.cache import ensure_dirs, make_lib_dir, make_inc_dir, store_textfile
+from dijitso.cache import ensure_dirs, make_lib_dir, make_inc_dir
 from dijitso.cache import create_fail_dir_path
 from dijitso.cache import create_lib_filename, create_lib_basename, create_libname
 from dijitso.cache import create_src_filename, create_src_basename

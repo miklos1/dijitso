@@ -19,6 +19,7 @@
 """Utilities for mpi features of dijitso."""
 
 from __future__ import unicode_literals
+import io
 import os
 import uuid
 from glob import glob
@@ -64,8 +65,8 @@ def discover_path_access_ranks(comm, path):
 
     # Write the rank of this process to a filename
     filename = basename + str(comm.rank)
-    with open(filename, "w") as f:
-        f.write("")
+    with io.open(filename, "wb") as f:
+        pass
 
     # Wait for all writes to take place. Don't know how robust this is
     # with nfs!!!

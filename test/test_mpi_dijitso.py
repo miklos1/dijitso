@@ -1,4 +1,3 @@
-#!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2015 Martin Sandve Alnæs
 #
@@ -17,7 +16,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 from __future__ import print_function
+
 import pytest
 import shutil
 import os

@@ -25,6 +25,7 @@ from six import string_types
 import os
 import sys
 import errno
+import io
 import gzip
 import shutil
 import stat
@@ -61,7 +62,7 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
     (output, errout) = pipe.communicate(input=input)
     assert not errout
     status = pipe.returncode
-    if sys.version_info[0] > 2:
+    if isinstance(output, bytes):
         output = output.decode('utf-8')
     return (status, output)
 
@@ -151,7 +152,7 @@ def gzip_file(filename):
     if not os.path.exists(gz_filename):
         # Write gzipped contents to a temp file
         tmp_filename = filename + "-tmp-" + uuid.uuid4().hex + ".gz"
-        with open(filename, "rb") as f_in, gzip.open(tmp_filename, "wb") as f_out:
+        with io.open(filename, "rb") as f_in, gzip.open(tmp_filename, "wb") as f_out:
             shutil.copyfileobj(f_in, f_out)
         # Safe move to target filename, other processes may compete here
         lockfree_move_file(tmp_filename, gz_filename)
@@ -164,7 +165,7 @@ def gunzip_file(gz_filename):
     filename = gz_filename[:-3]
     # Write gzipped contents to a temp file
     tmp_filename = filename + "-tmp-" + uuid.uuid4().hex
-    with gzip.open(gz_filename, "rb") as f_in, open(tmp_filename, "wb") as f_out:
+    with gzip.open(gz_filename, "rb") as f_in, io.open(tmp_filename, "wb") as f_out:
         shutil.copyfileobj(f_in, f_out)
     # Safe move to target filename, other processes may compete here
     lockfree_move_file(tmp_filename, filename)
@@ -172,24 +173,7 @@ def gunzip_file(gz_filename):
     return filename
 
 
-def read_file_lines(filename):
-    """Try to read file lines, if necessary unzipped
-    from filename.gz, return empty list if not found."""
-    if not os.path.exists(filename):
-        filename = filename + ".gz"
-    if not os.path.exists(filename):
-        content = ()
-    else:
-        if filename.endswith(".gz"):
-            with gzip.open(filename) as f:
-                content = f.readlines()
-        else:
-            with open(filename, "r") as f:
-                content = f.readlines()
-    return content
-
-
-def read_file(filename):
+def read_textfile(filename):
     """Try to read file content, if necessary unzipped
     from filename.gz, return None if not found."""
     if not os.path.exists(filename):
@@ -198,12 +182,42 @@ def read_file(filename):
         content = None
     else:
         if filename.endswith(".gz"):
-            with gzip.open(filename) as f:
+            content = b""
+            with gzip.open(filename, "rb") as f:
                 content = f.read()
+            content = content.decode("utf-8")
         else:
-            with open(filename, "r") as f:
+            with io.open(filename, "r", encoding="utf-8") as f:
                 content = f.read()
     return content
+
+
+def store_textfile(filename, content):
+    """Store content to filename without race conditions.
+
+    Works by first writing to a unique temp file and then
+    moving to final destination.
+
+    Handles both bytes and unicode.
+    """
+    # Generate a unique temporary filename in same directory as the target file
+    ui = uuid.uuid4().hex
+    tmp_filename = "%s.%s" % (filename, ui)
+
+    # Write the text to a temporary file
+    if isinstance(content, bytes):
+        # content is already bytes, write raw
+        f = io.open(tmp_filename, "wb")
+    else:
+        f = io.open(tmp_filename, "w", encoding="utf8")
+
+    with f:
+        f.write(content)
+
+    # Safely move file to target filename
+    lockfree_move_file(tmp_filename, filename)
+
+    return filename
 
 
 def move_file(srcfilename, dstfilename):
@@ -224,9 +238,9 @@ def lockfree_move_file(src, dst):
         raise RuntimeError("Source file does not exist.")
 
     if os.path.exists(dst):
-        with open(src) as f:
+        with io.open(src, "rb") as f:
             s = f.read()
-        with open(dst) as f:
+        with io.open(dst, "rb") as f:
             d = f.read()
         if s != d:
             warning("Not overwriting existing file with different contents:\n"

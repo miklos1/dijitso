@@ -21,7 +21,6 @@
 from __future__ import unicode_literals
 
 from glob import glob
-import io
 import uuid
 import os
 import re
@@ -30,7 +29,7 @@ from dijitso.system import ldd
 from dijitso.system import make_dirs, lockfree_move_file
 from dijitso.system import try_delete_file, try_copy_file
 from dijitso.system import gzip_file, gunzip_file
-from dijitso.system import read_file_lines, read_file
+from dijitso.system import read_textfile, store_textfile
 from dijitso.log import debug, error, warning
 
 
@@ -132,7 +131,8 @@ def grep_cache(regex, cache_params,
                             line = "%s => %s" % (k, libpath)
                             matches.append(line)
             else:
-                lines = read_file_lines(fn)
+                content = read_textfile(fn)
+                lines = content.splitlines() if content else ()
                 for i, line in enumerate(lines):
                     m = regex.match(line)
                     if m:
@@ -392,40 +392,19 @@ def lookup_lib(lib_signature, cache_params):
 def read_src(signature, cache_params):
     """Lookup source code in disk cache and return file contents or None."""
     filename = create_src_filename(signature, cache_params)
-    return read_file(filename)
+    return read_textfile(filename)
 
 
 def read_inc(signature, cache_params):
     """Lookup header file in disk cache and return file contents or None."""
     filename = create_inc_filename(signature, cache_params)
-    return read_file(filename)
+    return read_textfile(filename)
 
 
 def read_log(signature, cache_params):
     """Lookup log file in disk cache and return file contents or None."""
     filename = create_log_filename(signature, cache_params)
-    return read_file(filename)
-
-
-def store_textfile(filename, content):
-    # Generate a unique temporary filename in same directory as the target file
-    ui = uuid.uuid4().hex
-    tmp_filename = filename + "." + str(ui)
-
-    # Write the text to a temporary file
-    if isinstance(content, bytes):
-        # content is already bytes, write raw
-        f = io.open(tmp_filename, "wb")
-    else:
-        f = io.open(tmp_filename, "w", encoding="utf8")
-
-    with f:
-        f.write(content)
-
-    # Safely move file to target filename
-    lockfree_move_file(tmp_filename, filename)
-
-    return filename
+    return read_textfile(filename)
 
 
 def store_src(signature, content, cache_params):

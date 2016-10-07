@@ -30,6 +30,12 @@ import copy
 from dijitso.log import info, error
 
 
+def as_utf8(s):
+    if isinstance(s, bytes):
+        s = s.decode("utf-8")
+    return s
+
+
 def discover_config_filename():
     basename = ".dijitso.conf"
     search_paths = [
@@ -62,8 +68,11 @@ def read_config_file():
             parser = configparser.SafeConfigParser()
             parser.read(filename)
             for category in parser.sections():
+                category = as_utf8(category)
                 _config_file_contents[category] = {}
                 for name, value in parser.items(category):
+                    name = as_utf8(name)
+                    value = as_utf8(value)
                     _config_file_contents[category][name] = value
     return _config_file_contents
 
@@ -241,10 +250,19 @@ def validate_params(params):
                 value = as_str_tuple(value)
             p[category][name] = value
 
-    # hack begin
-    c = os.environ.get("INSTANT_CACHE_DIR")
-    if c:
-        p["cache"]["cache_dir"] = os.path.join(c, "dijitso")
-    # hack end
+    # Allow environment variables to override default cache dir
+    # Let dijitso specific dir win the contest
+    dcd = os.environ.get("DIJITSO_CACHE_DIR")
+    if dcd:
+        p["cache"]["cache_dir"] = as_utf8(dcd)
+    else:
+        # For fenics backwards compatibility:
+        icd = os.environ.get("INSTANT_CACHE_DIR")
+        # New fenics cache directory setup:
+        fcd = os.environ.get("FENICS_CACHE_DIR")
+        c = dcd or fcd or icd
+        if c:
+            c = as_utf8(c)
+            p["cache"]["cache_dir"] = os.path.join(c, "dijitso")
 
     return p
