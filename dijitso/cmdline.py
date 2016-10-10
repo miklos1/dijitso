@@ -40,7 +40,7 @@ from dijitso import __version__
 from dijitso.cache import glob_cache, grep_cache, clean_cache
 from dijitso.cache import extract_lib_signatures
 from dijitso.cache import extract_files, extract_function
-from dijitso.system import read_file_lines
+from dijitso.system import read_textfile
 
 
 def parse_categories(categories):
@@ -229,7 +229,8 @@ def cmd_grepfunction(args, params):
                 print("%5d: %s" % (i, line))
         else:
             # Print function bodies
-            lines = read_file_lines(fn)
+            content = read_textfile(fn)
+            lines = content.splitlines() if content else ()
             for i, line in allmatches[fn]:
                 print("%s:%d" % (fn, i))
                 assert name in lines[i]

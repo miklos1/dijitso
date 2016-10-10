@@ -24,9 +24,10 @@ import tempfile
 import os
 import sys
 
-from dijitso.system import get_status_output, lockfree_move_file, make_dirs, make_executable
+from dijitso.system import get_status_output, lockfree_move_file
+from dijitso.system import make_dirs, make_executable, store_textfile
 from dijitso.log import info, debug
-from dijitso.cache import ensure_dirs, make_lib_dir, make_inc_dir, store_textfile
+from dijitso.cache import ensure_dirs, make_lib_dir, make_inc_dir
 from dijitso.cache import create_fail_dir_path
 from dijitso.cache import create_lib_filename, create_lib_basename, create_libname
 from dijitso.cache import create_src_filename, create_src_basename
@@ -180,12 +181,7 @@ def build_shared_library(signature, header, source, dependencies, params):
             cmd = make_compile_command(src_basename, lib_basename,
                                        dependencies, build_params, cache_params)
 
-            # Make sure we are working with unicode
-            for i, e in enumerate(cmd):
-                if isinstance(e, bytes):
-                    cmd[i] = e.decode('utf8', 'replace')
-
-            log_contents = u"%s\n\n%s" % (" ".join(cmd), output)
+            log_contents = "%s\n\n%s" % (" ".join(cmd), output)
             log_filename = create_log_filename(signature, cache_params)
             assert os.path.exists(os.path.dirname(log_filename))
             store_textfile(log_filename, log_contents)

@@ -26,8 +26,15 @@ from six.moves import configparser
 from glob import glob
 import os
 import copy
+import numbers
 
 from dijitso.log import info, error
+
+
+def as_utf8(s):
+    if isinstance(s, bytes):
+        s = s.decode("utf-8")
+    return s
 
 
 def discover_config_filename():
@@ -62,8 +69,11 @@ def read_config_file():
             parser = configparser.SafeConfigParser()
             parser.read(filename)
             for category in parser.sections():
+                category = as_utf8(category)
                 _config_file_contents[category] = {}
                 for name, value in parser.items(category):
+                    name = as_utf8(name)
+                    value = as_utf8(value)
                     _config_file_contents[category][name] = value
     return _config_file_contents
 
@@ -167,10 +177,10 @@ def as_str_tuple(p):
     """Convert p to a tuple of strings, allowing a list or tuple of
 strings or a single string as input."""
     if isinstance(p, string_types):
-        return (p,)
+        return (as_utf8(p),)
     elif isinstance(p, (tuple, list)):
         if all(isinstance(item, string_types) for item in p):
-            return p
+            return tuple(as_utf8(item) for item in p)
     raise RuntimeError("Expecting a string or list of strings, not %s." % (p,))
 
 
@@ -224,27 +234,39 @@ def validate_params(params):
 
     # Convert parameter types
     for category in p:
+        category = as_utf8(category)
         if category == "generator":
             continue
         for name, value in p[category].items():
+            name = as_utf8(name)
             v0 = p0[category][name]
             if isinstance(v0, string_types):
-                # Expand paths including "~" to include full user home
-                # directory path
+                value = as_utf8(value)
+                # Expand paths including "~" to include
+                # full user home directory path
                 if name.endswith("_dir") and "~" in value:
                     value = os.path.expanduser(value)
             elif isinstance(v0, bool):
                 value = as_bool(value)
-            elif isinstance(v0, (int, float)):
+            elif isinstance(v0, numbers.Number):
                 value = type(v0)(value)
             elif isinstance(v0, tuple):
                 value = as_str_tuple(value)
             p[category][name] = value
 
-    # hack begin
-    c = os.environ.get("INSTANT_CACHE_DIR")
-    if c:
-        p["cache"]["cache_dir"] = os.path.join(c, "dijitso")
-    # hack end
+    # Allow environment variables to override default cache dir
+    # Let dijitso specific dir win the contest
+    dcd = os.environ.get("DIJITSO_CACHE_DIR")
+    if dcd:
+        p["cache"]["cache_dir"] = as_utf8(dcd)
+    else:
+        # For fenics backwards compatibility:
+        icd = os.environ.get("INSTANT_CACHE_DIR")
+        # New fenics cache directory setup:
+        fcd = os.environ.get("FENICS_CACHE_DIR")
+        c = dcd or fcd or icd
+        if c:
+            c = as_utf8(c)
+            p["cache"]["cache_dir"] = os.path.join(c, "dijitso")
 
     return p
