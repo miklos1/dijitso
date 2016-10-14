@@ -32,6 +32,7 @@ import stat
 import uuid
 import re
 from glob import glob
+import tempfile
 
 from dijitso.log import warning
 
@@ -44,7 +45,7 @@ from dijitso.log import warning
 #       https://www.open-mpi.org/faq/?category=openfabrics#ofa-fork
 #       http://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.12_rc1_release_notes#3.03
 # However, subprocess32 backports the fix from Python 3 to 2.7.
-if os.name == 'posix' and sys.version_info[0] < 3:
+if os.name == "posix" and sys.version_info[0] < 3:
     try:
         import subprocess32 as subprocess
     except:
@@ -53,7 +54,7 @@ else:
     import subprocess
 
 
-def get_status_output(cmd, input=None, cwd=None, env=None):
+def _get_status_output_subprocess(cmd, input=None, cwd=None, env=None):
     """Replacement for commands.getstatusoutput which does not work on Windows (or Python 3)."""
     if isinstance(cmd, string_types):
         cmd = cmd.strip().split()
@@ -65,6 +66,34 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
     if isinstance(output, bytes):
         output = output.decode('utf-8')
     return (status, output)
+
+
+def _get_status_output_system(cmd):
+    """Replacement for commands.getstatusoutput which does not work on Windows (or Python 3)."""
+    if not isinstance(cmd, string_types):
+        cmd = " ".join(cmd)
+    # Default return values
+    status = 1
+    output = "not run"
+    # Execute cmd with redirection to temporary file
+    with tempfile.NamedTemporaryFile(delete=True) as f:
+        cmd += ' > ' + f.name + ' 2>&1'
+        # NOTE: Possibly OFED-fork-safe, tests needed!
+        status = os.system(cmd)
+        output = f.read()
+    if isinstance(output, bytes):
+        output = output.decode('utf-8')
+    return (status, output)
+
+
+# Choose method for calling external programs. Use subprocess by default.
+_call_method = "SUBPROCESS"
+_call_method = os.environ.get("INSTANT_SYSTEM_CALL_METHOD", _call_method)
+
+if _call_method == "SUBPROCESS":
+    get_status_output = _get_status_output_subprocess
+elif _call_method == "OS_SYSTEM":
+    get_status_output = _get_status_output_system
 
 
 def make_executable(filename):
