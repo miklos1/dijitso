@@ -25,6 +25,7 @@ from six.moves import configparser
 
 from glob import glob
 import os
+import sys
 import copy
 import numbers
 
@@ -79,6 +80,10 @@ def read_config_file():
 
 
 def default_cache_params():
+    if sys.platform in ("win32", "cygwin"):
+        default_lib_postfix = ".dll"
+    else:
+        default_lib_postfix = ".so"
     p = dict(
         cache_dir="~/.cache/dijitso",
         inc_dir="include",
@@ -93,7 +98,7 @@ def default_cache_params():
         src_postfix=".cpp",
         log_postfix=".txt",
         inc_postfix=".h",
-        lib_postfix=".so",
+        lib_postfix=default_lib_postfix,
         lib_prefix="lib",
         lib_basename="dijitso-",
     )
