@@ -90,10 +90,10 @@ def _get_status_output_system(cmd):
 _call_method = "SUBPROCESS"
 _call_method = os.environ.get("INSTANT_SYSTEM_CALL_METHOD", _call_method)
 
-if _call_method == "SUBPROCESS":
-    get_status_output = _get_status_output_subprocess
-elif _call_method == "OS_SYSTEM":
+if _call_method == "OS_SYSTEM":
     get_status_output = _get_status_output_system
+else:
+    get_status_output = _get_status_output_subprocess
 
 
 def make_executable(filename):
