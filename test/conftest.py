@@ -14,8 +14,8 @@ def comm():
     try:
         from mpi4py import MPI
         c = MPI.COMM_WORLD
-    except:
-        pytest.fail("Need mpi4py to test with comms.")
+    except ImportError:
+        pytest.skip("Need mpi4py to test with comms.")
         c = None
     return c
 
