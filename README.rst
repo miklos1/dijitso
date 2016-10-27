@@ -24,6 +24,16 @@ Documentation can be viewed at http://fenics-dijitso.readthedocs.org/.
    :alt: Documentation Status
 
 
+Coverage status
+---------------
+
+Coverage status can be viewed at https://coveralls.io/repos/bitbucket/fenics-project/dijitso.
+
+.. image:: https://coveralls.io/repos/bitbucket/fenics-project/dijitso/badge.svg?branch=master
+   :target: https://coveralls.io/bitbucket/fenics-project/dijitso?branch=master
+   :alt: Coverage Status
+
+
 Motivation
 ----------
 
