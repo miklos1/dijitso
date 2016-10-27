@@ -24,10 +24,26 @@ Documentation can be viewed at http://fenics-dijitso.readthedocs.org/.
    :alt: Documentation Status
 
 
-Coverage status
----------------
+Automated Testing
+-----------------
 
-Coverage status can be viewed at https://coveralls.io/repos/bitbucket/fenics-project/dijitso.
+We use Bitbucket Pipelines and Atlassian Bamboo to perform automated
+testing.
+
+.. image:: https://bitbucket-badges.useast.atlassian.io/badge/fenics-project/dijitso.svg
+   :target: https://bitbucket.org/fenics-project/dijitso/addon/pipelines/home
+   :alt: Pipelines Build Status
+
+.. image:: http://fenics-bamboo.simula.no:8085/plugins/servlet/wittified/build-status/DIJ-DIDO
+   :target: http://fenics-bamboo.simula.no:8085/browse/DIJ-DIDO/latest
+   :alt: Bamboo Build Status
+
+
+Code Coverage
+-------------
+
+Code coverage reports can be viewed at
+https://coveralls.io/repos/bitbucket/fenics-project/dijitso.
 
 .. image:: https://coveralls.io/repos/bitbucket/fenics-project/dijitso/badge.svg?branch=master
    :target: https://coveralls.io/bitbucket/fenics-project/dijitso?branch=master
