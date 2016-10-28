@@ -268,9 +268,11 @@ def validate_params(params):
     if not cache_dir:
         # Place default cache dir in env if we are using one,
         # or under user directory
-        env = os.path.expanduser("~")
-        env = os.environ.get("CONDA_PREFIX", env)
-        env = os.environ.get("VIRTUAL_ENV", env)
+        env = os.environ.get("VIRTUAL_ENV")
+        if not env:
+            env = os.environ.get("CONDA_PREFIX", env)
+        if not env:
+            env = os.path.expanduser("~")
         cache_dir = os.path.join(env, ".cache", "dijitso")
     p["cache"]["cache_dir"] = as_unicode(cache_dir)
 
