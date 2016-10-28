@@ -29,13 +29,16 @@ import sys
 import copy
 import numbers
 
-from dijitso.log import info, error
+from dijitso.log import info, error, warning
+from dijitso.py23 import as_unicode
 
 
-def as_utf8(s):
-    if isinstance(s, bytes):
-        s = s.decode("utf-8")
-    return s
+# Warning for fenics backwards compatibility:
+if (os.environ.get("INSTANT_CACHE_DIR") and
+        not os.environ.get("DIJITSO_CACHE_DIR")):
+    warning("INSTANT_CACHE_DIR is no longer used by dijitso."
+            " To set the cache directory for dijitso,"
+            " set DIJITSO_CACHE_DIR.")
 
 
 def discover_config_filename():
@@ -70,11 +73,11 @@ def read_config_file():
             parser = configparser.SafeConfigParser()
             parser.read(filename)
             for category in parser.sections():
-                category = as_utf8(category)
+                category = as_unicode(category)
                 _config_file_contents[category] = {}
                 for name, value in parser.items(category):
-                    name = as_utf8(name)
-                    value = as_utf8(value)
+                    name = as_unicode(name)
+                    value = as_unicode(value)
                     _config_file_contents[category][name] = value
     return _config_file_contents
 
@@ -85,7 +88,7 @@ def default_cache_params():
     else:
         default_lib_postfix = ".so"
     p = dict(
-        cache_dir="~/.cache/dijitso",
+        cache_dir=None,  # See validate_params
         inc_dir="include",
         src_dir="src",
         lib_dir="lib",
@@ -182,10 +185,10 @@ def as_str_tuple(p):
     """Convert p to a tuple of strings, allowing a list or tuple of
 strings or a single string as input."""
     if isinstance(p, string_types):
-        return (as_utf8(p),)
+        return (as_unicode(p),)
     elif isinstance(p, (tuple, list)):
         if all(isinstance(item, string_types) for item in p):
-            return tuple(as_utf8(item) for item in p)
+            return tuple(as_unicode(item) for item in p)
     raise RuntimeError("Expecting a string or list of strings, not %s." % (p,))
 
 
@@ -239,14 +242,14 @@ def validate_params(params):
 
     # Convert parameter types
     for category in p:
-        category = as_utf8(category)
+        category = as_unicode(category)
         if category == "generator":
             continue
         for name, value in p[category].items():
-            name = as_utf8(name)
+            name = as_unicode(name)
             v0 = p0[category][name]
             if isinstance(v0, string_types):
-                value = as_utf8(value)
+                value = as_unicode(value)
                 # Expand paths including "~" to include
                 # full user home directory path
                 if name.endswith("_dir") and "~" in value:
@@ -261,17 +264,14 @@ def validate_params(params):
 
     # Allow environment variables to override default cache dir
     # Let dijitso specific dir win the contest
-    dcd = os.environ.get("DIJITSO_CACHE_DIR")
-    if dcd:
-        p["cache"]["cache_dir"] = as_utf8(dcd)
-    else:
-        # For fenics backwards compatibility:
-        icd = os.environ.get("INSTANT_CACHE_DIR")
-        # New fenics cache directory setup:
-        fcd = os.environ.get("FENICS_CACHE_DIR")
-        c = dcd or fcd or icd
-        if c:
-            c = as_utf8(c)
-            p["cache"]["cache_dir"] = os.path.join(c, "dijitso")
+    cache_dir = os.environ.get("DIJITSO_CACHE_DIR")
+    if not cache_dir:
+        # Place default cache dir in env if we are using one,
+        # or under user directory
+        env = os.path.expanduser("~")
+        env = os.environ.get("CONDA_PREFIX", env)
+        env = os.environ.get("VIRTUAL_ENV", env)
+        cache_dir = os.path.join(env, ".cache", "dijitso")
+    p["cache"]["cache_dir"] = as_unicode(cache_dir)
 
     return p
