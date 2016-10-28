@@ -266,14 +266,17 @@ def validate_params(params):
     # Let dijitso specific dir win the contest
     cache_dir = os.environ.get("DIJITSO_CACHE_DIR")
     if not cache_dir:
-        # Place default cache dir in env if we are using one,
-        # or under user directory
-        env = os.environ.get("VIRTUAL_ENV")
-        if not env:
-            env = os.environ.get("CONDA_PREFIX", env)
-        if not env:
-            env = os.path.expanduser("~")
+        # Place default cache dir in virtualenv or conda prefix
+        # if one of them are active, or under user's home directory
+        home = os.path.expanduser("~")
+        venv = os.environ.get("VIRTUAL_ENV")
+        cenv = os.environ.get("CONDA_PREFIX")
+        if venv == sys.prefix:
+            env = venv
+        elif cenv == sys.prefix:
+            env = cenv
+        else:
+            env = home
         cache_dir = os.path.join(env, ".cache", "dijitso")
     p["cache"]["cache_dir"] = as_unicode(cache_dir)
-
     return p
