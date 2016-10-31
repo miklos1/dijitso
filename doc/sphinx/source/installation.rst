@@ -27,6 +27,12 @@ following Python packages:
 These packages will be automatically installed as part of the
 installation of DIJITSO, if not already present on your system.
 
+If running on a cluster with Infiniband with python 2,
+you also need to install a backport of the subprocess
+module from python 3 to get safe fork behaviour:
+
+* subprocess32
+
 Additionally, to run tests the following packages are needed
 
 * pytest
@@ -51,3 +57,34 @@ to the installation command:
 .. code-block:: console
 
     pip install --prefix=<some directory> .
+
+
+Environment
+===========
+
+Instant's behaviour depened on following environment variables:
+
+ - ``DIJITSO_CACHE_DIR``
+
+   This option overrides the placement of the cache directory.
+   By default the cache directory is placed in ``.cache/dijitso``
+   either below the home directory or below the prefix
+   of the currently active virtualenv or conda environment if any.
+
+ - ``DIJITSO_SYSTEM_CALL_METHOD``
+
+   Choose method for calling external programs (c++ compiler).
+   Available values:
+
+       - ``SUBPROCESS``
+
+           Uses pipes. Not OFED-fork safe on Python 2 unless
+           subprocess32 has been installed. Default.
+
+       - ``OS_SYSTEM``
+
+           Uses temporary files. Probably OFED-fork safe.
+
+.. warning:: OFED-fork safe system call method might be required to
+             avoid crashes on OFED-based (InfiniBand) clusters!
+             If using python 2, installing subprocess32 is recommended.

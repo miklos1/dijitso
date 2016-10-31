@@ -91,7 +91,7 @@ def _get_status_output_system(cmd):
 
 # Choose method for calling external programs. Use subprocess by default.
 _call_method = "SUBPROCESS"
-_call_method = os.environ.get("INSTANT_SYSTEM_CALL_METHOD", _call_method)
+_call_method = os.environ.get("DIJITSO_SYSTEM_CALL_METHOD", _call_method)
 
 if _call_method == "OS_SYSTEM":
     get_status_output = _get_status_output_system
