@@ -263,23 +263,40 @@ def move_file(srcfilename, dstfilename):
 def lockfree_move_file(src, dst):
     """Lockfree and portable nfs safe file move operation.
 
+    If target filename exists with different content,
+    will move it to filename.old and emit a warning.
+
     Taken from textual description at
     http://stackoverflow.com/questions/11614815/a-safe-atomic-file-copy-operation
     """
-    if not os.path.exists(src):
-        raise RuntimeError("Source file does not exist.")
+    return _lockfree_move_file(src, dst, False)
 
-    if os.path.exists(dst):
+
+def _lockfree_move_file(src, dst, recurse):
+    if not os.path.exists(src):
+        if recurse:
+            return
+        else:
+            raise RuntimeError("Source file does not exist.")
+
+    dst_exists = os.path.exists(dst)
+    if dst_exists and recurse:
+        warning("Backup file exists, overwriting.")
+    elif dst_exists:
+        # Destination file exists
         with io.open(src, "rb") as f:
             s = f.read()
         with io.open(dst, "rb") as f:
             d = f.read()
-        if s != d:
-            warning("Not overwriting existing file with different contents:\n"
-                    "src: %s\ndst: %s" % (src, dst))
-        else:
+        if s == d:
+            # Files are the same, just delete src instead of moving
             try_delete_file(src)
-        return
+            return
+        # Files differ, backup old file before moving file over it
+        backup = dst + ".old"
+        warning("Moving new file over differing existing file:\n"
+                "src: %s\ndst: %s\nbackup: %s" % (src, dst, backup))
+        _lockfree_move_file(dst, backup, True)
 
     def priv(j):
         return dst + ".priv." + str(j)
