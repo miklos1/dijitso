@@ -25,7 +25,7 @@ import numpy
 
 from dijitso.log import error
 from dijitso.params import validate_params
-from dijitso.params import as_utf8
+from dijitso.py23 import as_unicode
 from dijitso.cache import lookup_lib, load_library
 from dijitso.cache import write_library_binary, read_library_binary
 from dijitso.build import build_shared_library
@@ -143,7 +143,7 @@ def jit(jitable, name, params, generate=None,
     # FIXME: use only name as signature for now
     # TODO: just remove one of signature or name from API?
     # signature = jit_signature(name, params)
-    name = as_utf8(name)
+    name = as_unicode(name)
     signature = name
     cache_params = params["cache"]
     lib = lookup_lib(signature, cache_params)
@@ -159,9 +159,9 @@ def jit(jitable, name, params, generate=None,
             # 1) Generate source code
             header, source, dependencies = generate(jitable, name, signature, params["generator"])
             # Ensure we got unicode from generate
-            header = as_utf8(header)
-            source = as_utf8(source)
-            dependencies = [as_utf8(dep) for dep in dependencies]
+            header = as_unicode(header)
+            source = as_unicode(source)
+            dependencies = [as_unicode(dep) for dep in dependencies]
 
             # 2) Compile shared library and 3) store in dijitso
             # inc/src/lib dir on success
