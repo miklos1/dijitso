@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 library builder."""
 
 __author__ = "Martin Sandve Alnæs"
-__version__ = "2016.2.0.dev0"
+__version__ = "2016.2.0"
 
 __all__ = ["validate_params", "jit", "extract_factory_function",
            "set_log_level"]
