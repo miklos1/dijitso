@@ -49,7 +49,7 @@ if os.name == "posix" and sys.version_info[0] < 3:
     try:
         import subprocess32 as subprocess
     except:
-        warning("subprocess32 module not found! Using unsafe built-in"
+        warning("subprocess32 module not found! Using unsafe built-in "
                 "subprocess module instead. Install subprocess32 for "
                 "thread-safety and safe usage on OFED/Infiniband networks.")
         import subprocess
