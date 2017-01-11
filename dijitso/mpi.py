@@ -243,6 +243,7 @@ def receive_binary(comm):
 
     return lib_data
 
+
 """
 def foo():
     # TODO: Should call these once (for each comm at least) globally
