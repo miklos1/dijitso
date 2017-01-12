@@ -347,7 +347,6 @@ def load_library(signature, cache_params):
     if not os.path.exists(lib_filename):
         debug("File %s does not exist" % (lib_filename,))
         return None
-    debug("AAA")
     debug("Loading %s from %s" % (signature, lib_filename))
     try:
         lib = ctypes.cdll.LoadLibrary(lib_filename)
