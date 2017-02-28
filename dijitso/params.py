@@ -108,6 +108,11 @@ def default_cache_params():
     return p
 
 
+def default_cxx_compiler():
+    "Default C++ compiler"
+    return os.getenv("CXX", "c++")
+
+
 def default_cxx_flags():
     "Default C++ flags for all build modes."
     # Dropped because of some symbol sharing across dependent modules from ffc:
@@ -135,7 +140,7 @@ def default_cxx_release_flags():
 
 def default_build_params():
     p = dict(
-        cxx="c++",
+        cxx=default_cxx_compiler(),
         cxxflags=default_cxx_flags(),
         cxxflags_debug=default_cxx_debug_flags(),
         cxxflags_opt=default_cxx_release_flags(),
