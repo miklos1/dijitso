@@ -43,7 +43,7 @@ Code Coverage
 -------------
 
 Code coverage reports can be viewed at
-https://coveralls.io/repos/bitbucket/fenics-project/dijitso.
+https://coveralls.io/bitbucket/fenics-project/dijitso.
 
 .. image:: https://coveralls.io/repos/bitbucket/fenics-project/dijitso/badge.svg?branch=master
    :target: https://coveralls.io/bitbucket/fenics-project/dijitso?branch=master
