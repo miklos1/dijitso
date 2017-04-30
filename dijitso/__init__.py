@@ -16,13 +16,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with DIJITSO. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from pkg_resources import get_distribution
 
 """This is dijitso -- a lightweight distributed just-in-time shared
 library builder."""
 
 __author__ = "Martin Sandve Alnæs"
-__version__ = "2017.1.0.dev0"
+__version__ = get_distribution('dijitso').version
 
 __all__ = ["validate_params", "jit", "extract_factory_function",
            "set_log_level"]
