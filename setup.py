@@ -3,9 +3,7 @@ from __future__ import print_function
 
 from setuptools import setup
 from os.path import join
-import re
 import sys
-import codecs
 
 module_name = "dijitso"
 
